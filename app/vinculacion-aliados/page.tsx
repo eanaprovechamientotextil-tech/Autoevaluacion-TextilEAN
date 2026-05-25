@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardShell } from "@/components/prototype/dashboard-shell";
@@ -40,7 +40,7 @@ const INITIAL_FORM: AliadoForm = {
   observations: "",
 };
 
-export default function VinculacionAliadosPage() {
+function VinculacionAliadosContent() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -352,5 +352,13 @@ export default function VinculacionAliadosPage() {
         ) : null}
       </section>
     </DashboardShell>
+  );
+}
+
+export default function VinculacionAliadosPage() {
+  return (
+    <Suspense fallback={<section className="mx-auto w-full max-w-6xl p-6 text-sm text-slate-600">Cargando vinculación de aliados...</section>}>
+      <VinculacionAliadosContent />
+    </Suspense>
   );
 }

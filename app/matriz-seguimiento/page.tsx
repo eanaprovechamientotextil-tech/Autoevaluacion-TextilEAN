@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardShell } from "@/components/prototype/dashboard-shell";
 import { SolicitudSelector } from "@/components/prototype/solicitud-selector";
@@ -72,7 +72,7 @@ function clampResultadoByMode(value: string, mode: "text" | "percent" | "number"
   return Math.max(0, parsed).toString();
 }
 
-export default function MatrizSeguimientoPage() {
+function MatrizSeguimientoContent() {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -422,5 +422,13 @@ export default function MatrizSeguimientoPage() {
         ) : null}
       </section>
     </DashboardShell>
+  );
+}
+
+export default function MatrizSeguimientoPage() {
+  return (
+    <Suspense fallback={<section className="mx-auto w-full max-w-6xl p-6 text-sm text-slate-600">Cargando matriz de seguimiento...</section>}>
+      <MatrizSeguimientoContent />
+    </Suspense>
   );
 }
