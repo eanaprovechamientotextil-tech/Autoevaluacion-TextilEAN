@@ -1,0 +1,74 @@
+"use client";
+
+import { APP_ROUTES } from "@/src/constants/routes";
+import { buildComputedRows, getConclusion, getGlobalLevelByPercent } from "@/src/domain/autodiagnostico";
+import { getLatestDiagnosticoId, resolveSolicitudContext, supabase, upsertDiagnostico } from "@/src/repositories/solicitud-repository";
+import { ScoreByDimension, WeightByDimension } from "@/src/types/autodiagnostico";
+import { AUTODIAGNOSTICO_COPY } from "@/src/constants/copy";
+import { useMemo, useState } from "react";
+
+const initialScores = AUTODIAGNOSTICO_COPY.dimensions.reduce<ScoreByDimension>((acc, d) => ({ ...acc, [d.key]: 1 }), {});
+const initialWeights = AUTODIAGNOSTICO_COPY.dimensions.reduce<WeightByDimension>((acc, d) => ({ ...acc, [d.key]: d.weight }), {});
+
+export function useAutodiagnosticoForm(searchParams: URLSearchParams, push: (path: string) => void) {
+  const [scores, setScores] = useState(initialScores);
+  const [weights, setWeights] = useState(initialWeights);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [hydratedSearch, setHydratedSearch] = useState("");
+
+  const computedRows = useMemo(() => buildComputedRows(scores, weights), [scores, weights]);
+  const totalWeight = useMemo(() => computedRows.reduce((acc, row) => acc + row.weight, 0), [computedRows]);
+  const isWeightTotalValid = totalWeight === 100;
+  const totalWeightedResult = useMemo(() => computedRows.reduce((acc, row) => acc + row.weightedResult, 0), [computedRows]);
+  const maturityPercent = useMemo(() => (totalWeightedResult / 5) * 100, [totalWeightedResult]);
+  const globalLevel = useMemo(() => getGlobalLevelByPercent(maturityPercent), [maturityPercent]);
+  const weakestDimension = useMemo(() => computedRows.reduce((lowest, current) => (!lowest || current.score < lowest.score ? current : lowest), null as (typeof computedRows)[number] | null), [computedRows]);
+  const largestGapDimension = useMemo(() => computedRows.reduce((largest, current) => (current.gap > largest ? current.gap : largest), 0), [computedRows]);
+  const conclusion = useMemo(() => getConclusion(totalWeightedResult), [totalWeightedResult]);
+
+  async function load() {
+    const resolved = await resolveSolicitudContext(searchParams);
+    setHydratedSearch(resolved.hydratedSearch);
+    if (!resolved.context) return setIsLoading(false);
+    const diagId = await getLatestDiagnosticoId(resolved.context.idEmpresa, resolved.context.numeroSolicitud);
+    if (!diagId) return setIsLoading(false);
+    const { data: details } = await supabase.from("diagnostico_detalle").select("dimension_clave, peso_porcentaje, calificacion").eq("id_diagnostico", diagId);
+    if (details?.length) {
+      const nextScores = { ...initialScores };
+      const nextWeights = { ...initialWeights };
+      details.forEach((row) => {
+        if (row.dimension_clave in nextScores) {
+          nextScores[row.dimension_clave] = Number(row.calificacion ?? 1);
+          nextWeights[row.dimension_clave] = Number(row.peso_porcentaje ?? nextWeights[row.dimension_clave]);
+        }
+      });
+      setScores(nextScores);
+      setWeights(nextWeights);
+    }
+    setIsLoading(false);
+  }
+
+  async function saveAndContinue() {
+    if (!isWeightTotalValid) return;
+    setSubmitError(null);
+    setIsSubmitting(true);
+    try {
+      const resolved = await resolveSolicitudContext(searchParams);
+      setHydratedSearch(resolved.hydratedSearch);
+      if (!resolved.context) return setSubmitError(AUTODIAGNOSTICO_COPY.submit.companyContextMissing);
+      const existingId = await getLatestDiagnosticoId(resolved.context.idEmpresa, resolved.context.numeroSolicitud);
+      const details = computedRows.map((row) => ({ dimension_clave: row.key, dimension: row.name, criterio: row.criteria, peso_porcentaje: row.weight, calificacion: row.score, resultado_ponderado: row.weightedResult, brecha: row.gap, nivel: row.level, recomendacion_automatica: row.recommendation }));
+      const result = await upsertDiagnostico({ existingId, idEmpresa: resolved.context.idEmpresa, numeroSolicitud: resolved.context.numeroSolicitud, totalWeightedResult, maturityPercent, globalLevel, weakestDimension: weakestDimension?.name ?? AUTODIAGNOSTICO_COPY.summary.noWeakDimension, largestGapDimension, conclusion, userId: resolved.context.userId, details });
+      if (result.error) return setSubmitError(result.error.message || AUTODIAGNOSTICO_COPY.submit.saveError);
+      push(`${APP_ROUTES.caracterizacion}${resolved.hydratedSearch}`);
+    } catch {
+      setSubmitError(AUTODIAGNOSTICO_COPY.submit.saveError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return { scores, setScores, weights, setWeights, computedRows, totalWeight, isWeightTotalValid, totalWeightedResult, maturityPercent, globalLevel, weakestDimension, largestGapDimension, conclusion, isSubmitting, isLoading, submitError, hydratedSearch, load, saveAndContinue };
+}
