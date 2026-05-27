@@ -5,14 +5,16 @@ import { buildComputedRows, getConclusion, getGlobalLevelByPercent } from "@/src
 import { getLatestDiagnosticoId, resolveSolicitudContext, supabase, upsertDiagnostico } from "@/src/repositories/solicitud-repository";
 import { ScoreByDimension, WeightByDimension } from "@/src/types/autodiagnostico";
 import { AUTODIAGNOSTICO_COPY } from "@/src/constants/copy";
-import { useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
 
 const initialScores = AUTODIAGNOSTICO_COPY.dimensions.reduce<ScoreByDimension>((acc, d) => ({ ...acc, [d.key]: 1 }), {});
 const initialWeights = AUTODIAGNOSTICO_COPY.dimensions.reduce<WeightByDimension>((acc, d) => ({ ...acc, [d.key]: d.weight }), {});
 
 export function useAutodiagnosticoForm(searchParams: URLSearchParams, push: (path: string) => void) {
-  const [scores, setScores] = useState(initialScores);
-  const [weights, setWeights] = useState(initialWeights);
+  const [scores, setScoresState] = useState(initialScores);
+  const [weights, setWeightsState] = useState(initialWeights);
+  const scoresRef = useRef(initialScores);
+  const weightsRef = useRef(initialWeights);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -27,6 +29,18 @@ export function useAutodiagnosticoForm(searchParams: URLSearchParams, push: (pat
   const weakestDimension = useMemo(() => computedRows.reduce((lowest, current) => (!lowest || current.score < lowest.score ? current : lowest), null as (typeof computedRows)[number] | null), [computedRows]);
   const largestGapDimension = useMemo(() => computedRows.reduce((largest, current) => (current.gap > largest ? current.gap : largest), 0), [computedRows]);
   const conclusion = useMemo(() => getConclusion(totalWeightedResult), [totalWeightedResult]);
+
+  const setScores: Dispatch<SetStateAction<ScoreByDimension>> = (nextState) => {
+    const next = typeof nextState === "function" ? nextState(scoresRef.current) : nextState;
+    scoresRef.current = next;
+    setScoresState(next);
+  };
+
+  const setWeights: Dispatch<SetStateAction<WeightByDimension>> = (nextState) => {
+    const next = typeof nextState === "function" ? nextState(weightsRef.current) : nextState;
+    weightsRef.current = next;
+    setWeightsState(next);
+  };
 
   async function load() {
     const resolved = await resolveSolicitudContext(searchParams);
@@ -44,8 +58,10 @@ export function useAutodiagnosticoForm(searchParams: URLSearchParams, push: (pat
           nextWeights[row.dimension_clave] = Number(row.peso_porcentaje ?? nextWeights[row.dimension_clave]);
         }
       });
-      setScores(nextScores);
-      setWeights(nextWeights);
+      scoresRef.current = nextScores;
+      weightsRef.current = nextWeights;
+      setScoresState(nextScores);
+      setWeightsState(nextWeights);
     }
     setIsLoading(false);
   }
@@ -59,8 +75,15 @@ export function useAutodiagnosticoForm(searchParams: URLSearchParams, push: (pat
       setHydratedSearch(resolved.hydratedSearch);
       if (!resolved.context) return setSubmitError(AUTODIAGNOSTICO_COPY.submit.companyContextMissing);
       const existingId = await getLatestDiagnosticoId(resolved.context.idEmpresa, resolved.context.numeroSolicitud);
-      const details = computedRows.map((row) => ({ dimension_clave: row.key, dimension: row.name, criterio: row.criteria, peso_porcentaje: row.weight, calificacion: row.score, resultado_ponderado: row.weightedResult, brecha: row.gap, nivel: row.level, recomendacion_automatica: row.recommendation }));
-      const result = await upsertDiagnostico({ existingId, idEmpresa: resolved.context.idEmpresa, numeroSolicitud: resolved.context.numeroSolicitud, totalWeightedResult, maturityPercent, globalLevel, weakestDimension: weakestDimension?.name ?? AUTODIAGNOSTICO_COPY.summary.noWeakDimension, largestGapDimension, conclusion, userId: resolved.context.userId, details });
+      const rowsToPersist = buildComputedRows(scoresRef.current, weightsRef.current);
+      const totalWeightedResultToPersist = rowsToPersist.reduce((acc, row) => acc + row.weightedResult, 0);
+      const maturityPercentToPersist = (totalWeightedResultToPersist / 5) * 100;
+      const globalLevelToPersist = getGlobalLevelByPercent(maturityPercentToPersist);
+      const weakestDimensionToPersist = rowsToPersist.reduce((lowest, current) => (!lowest || current.score < lowest.score ? current : lowest), null as (typeof rowsToPersist)[number] | null);
+      const largestGapDimensionToPersist = rowsToPersist.reduce((largest, current) => (current.gap > largest ? current.gap : largest), 0);
+      const conclusionToPersist = getConclusion(totalWeightedResultToPersist);
+      const details = rowsToPersist.map((row) => ({ dimension_clave: row.key, dimension: row.name, criterio: row.criteria, peso_porcentaje: row.weight, calificacion: row.score, resultado_ponderado: row.weightedResult, brecha: row.gap, nivel: row.level, recomendacion_automatica: row.recommendation }));
+      const result = await upsertDiagnostico({ existingId, idEmpresa: resolved.context.idEmpresa, numeroSolicitud: resolved.context.numeroSolicitud, totalWeightedResult: totalWeightedResultToPersist, maturityPercent: maturityPercentToPersist, globalLevel: globalLevelToPersist, weakestDimension: weakestDimensionToPersist?.name ?? AUTODIAGNOSTICO_COPY.summary.noWeakDimension, largestGapDimension: largestGapDimensionToPersist, conclusion: conclusionToPersist, userId: resolved.context.userId, details });
       if (result.error) return setSubmitError(result.error.message || AUTODIAGNOSTICO_COPY.submit.saveError);
       push(`${APP_ROUTES.caracterizacion}${resolved.hydratedSearch}`);
     } catch {

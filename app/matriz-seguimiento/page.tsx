@@ -73,7 +73,7 @@ function clampResultadoByMode(value: string, mode: "text" | "percent" | "number"
 }
 
 function MatrizSeguimientoContent() {
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
   const router = useRouter();
   const searchParams = useSearchParams();
   const empresa = searchParams.get("empresa") ?? "";
@@ -170,7 +170,7 @@ function MatrizSeguimientoContent() {
     return () => {
       mounted = false;
     };
-  }, [empresa, hasSelectedSolicitud, sol]);
+  }, [empresa, hasSelectedSolicitud, sol, supabase]);
 
   const promedioCumplimiento = useMemo(() => {
     const total = rows.reduce((acc, row) => acc + row.cumplimiento, 0);
@@ -288,6 +288,36 @@ function MatrizSeguimientoContent() {
 
       if (insertDetailError) {
         setSubmitError(insertDetailError.message || "No se pudo guardar el detalle de la matriz.");
+        return;
+      }
+
+      const { data: persistedRows, error: persistedRowsError } = await supabase
+        .from("seguimiento_etapa")
+        .select("cumplimiento")
+        .eq("id_resultado", matrizId);
+
+      if (persistedRowsError) {
+        setSubmitError(persistedRowsError.message || "No se pudo recalcular la matriz de seguimiento.");
+        return;
+      }
+
+      const persistedAvg = (persistedRows ?? []).length
+        ? (persistedRows ?? []).reduce((acc, row) => acc + Number(row.cumplimiento ?? 0), 0) / (persistedRows ?? []).length
+        : 0;
+      const persistedLevel = nivelPorPromedio(persistedAvg);
+      const persistedInterpretation = interpretacionPorNivel(persistedLevel);
+
+      const { error: syncParentError } = await supabase
+        .from("seguimiento_resultado")
+        .update({
+          promedio_cumplimiento: Number(persistedAvg.toFixed(2)),
+          nivel_cumplimiento: persistedLevel,
+          interpretacion: persistedInterpretation,
+        })
+        .eq("id", matrizId);
+
+      if (syncParentError) {
+        setSubmitError(syncParentError.message || "No se pudo sincronizar el resumen de la matriz.");
         return;
       }
 

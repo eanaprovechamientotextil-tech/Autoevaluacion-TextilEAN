@@ -5,7 +5,7 @@ import { PLAN_ACCION_KPIS_COPY } from "@/src/constants/copy";
 import { clamp1to5, cumplimiento, emptyActionRow, priorityIndex, priorityLabel, toScore } from "@/src/domain/plan-accion";
 import { getLatestPlanId, resolveSolicitudContext, supabase } from "@/src/repositories/solicitud-repository";
 import { ActionRow, KpiRow } from "@/src/types/plan-accion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path: string) => void) {
   const autoActualIndicators = new Set([
@@ -68,17 +68,14 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
     });
   }
 
-  useEffect(() => {
-    const closedCount = actionRows.filter((row) => row.estado === "Cerrado").length;
-
-    setKpiRows((prev) =>
-      prev.map((row) =>
-        row.indicador === "Acciones cerradas de la hoja de ruta"
-          ? { ...row, actual: closedCount }
-          : row,
-      ),
+  const syncClosedActionsKpi = (nextActionRows: ActionRow[], prevKpis: KpiRow[]) => {
+    const closedCount = nextActionRows.filter((row) => row.estado === "Cerrado").length;
+    return prevKpis.map((row) =>
+      row.indicador === "Acciones cerradas de la hoja de ruta"
+        ? { ...row, actual: closedCount }
+        : row,
     );
-  }, [actionRows]);
+  };
 
   async function load() {
     const runId = ++loadRunRef.current;
@@ -141,9 +138,9 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
     const mappedKpis = kpis?.map((row) => ({ indicador: row.indicador ?? "", actual: Number(row.valor_actual ?? 0), meta: Number(row.valor_meta ?? 0) })) ?? [];
     if (mappedActions.length) setActionRows(mappedActions);
     if (mappedKpis.length) {
-      setKpiRows(applyCaracterizacionToKpis(mappedKpis, caracPayload));
+      setKpiRows(syncClosedActionsKpi(mappedActions.length ? mappedActions : actionRows, applyCaracterizacionToKpis(mappedKpis, caracPayload)));
     } else {
-      setKpiRows((prev) => applyCaracterizacionToKpis(prev, caracPayload));
+      setKpiRows((prev) => syncClosedActionsKpi(mappedActions.length ? mappedActions : actionRows, applyCaracterizacionToKpis(prev, caracPayload)));
     }
     setExistingPlanId(planId);
     setLastSavedSignature(signatureFor(mappedActions.length ? mappedActions : actionRows, mappedKpis.length ? mappedKpis : kpiRows));
@@ -162,10 +159,64 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
       if (currentSignature === lastSavedSignature && existingPlanId) return push(`${APP_ROUTES.vinculacionAliados}${resolved.hydratedSearch}`);
       const planId = existingPlanId ?? (await supabase.from("plan_accion_kpis").insert({ id_empresa: resolved.context.idEmpresa, numero_solicitud: resolved.context.numeroSolicitud, creado_por: resolved.context.userId }).select("id").single()).data?.id;
       if (!planId) return setSubmitError(PLAN_ACCION_KPIS_COPY.submit.saveError);
-      await supabase.from("plan_accion_kpis").update({ objetivo: PLAN_ACCION_KPIS_COPY.objective, acciones_alta_prioridad: resumen.altas, acciones_cerradas: resumen.cerradas, acciones_en_riesgo: resumen.riesgo, cumplimiento_promedio_kpi: resumen.promedioKpi, estado_general: resumen.estadoGeneral }).eq("id", planId);
       await Promise.all([supabase.from("plan_accion_detalle").delete().eq("id_plan", planId), supabase.from("plan_kpi_detalle").delete().eq("id_plan", planId)]);
       await supabase.from("plan_accion_detalle").insert(actionRows.map((row) => { const indice = priorityIndex(row.impacto, row.esfuerzo); return { id_plan: planId, fase: row.fase, accion: row.accion, responsable: row.responsable, fecha_inicio: row.fecha_inicio || null, fecha_fin: row.fecha_fin || null, impacto: toScore(row.impacto) || 1, esfuerzo: toScore(row.esfuerzo) || 1, indice_prioridad: indice === "" ? null : indice, prioridad: priorityLabel(indice) || null, estado: row.estado }; }));
       await supabase.from("plan_kpi_detalle").insert(kpiRows.map((row) => ({ id_plan: planId, indicador: row.indicador, valor_actual: row.actual, valor_meta: row.meta, porcentaje_cumplimiento: cumplimiento(row.actual, row.meta) })));
+
+      const [{ data: persistedActions, error: persistedActionsError }, { data: persistedKpis, error: persistedKpisError }] =
+        await Promise.all([
+          supabase
+            .from("plan_accion_detalle")
+            .select("impacto, esfuerzo, estado")
+            .eq("id_plan", planId),
+          supabase
+            .from("plan_kpi_detalle")
+            .select("porcentaje_cumplimiento")
+            .eq("id_plan", planId),
+        ]);
+
+      if (persistedActionsError || persistedKpisError) {
+        return setSubmitError(PLAN_ACCION_KPIS_COPY.submit.saveError);
+      }
+
+      const persistedAltas = (persistedActions ?? []).filter((row) => {
+        const indice = priorityIndex(Number(row.impacto ?? 0), Number(row.esfuerzo ?? 0));
+        return priorityLabel(indice) === PLAN_ACCION_KPIS_COPY.priorities.alta;
+      }).length;
+      const persistedCerradas = (persistedActions ?? []).filter((row) => row.estado === "Cerrado").length;
+      const persistedRiesgo = (persistedActions ?? []).filter((row) => row.estado === "En riesgo").length;
+
+      const cumplimientoValues = (persistedKpis ?? [])
+        .map((row) => (row.porcentaje_cumplimiento === null ? null : Number(row.porcentaje_cumplimiento)))
+        .filter((value): value is number => value !== null && Number.isFinite(value));
+
+      const persistedPromedioKpi = cumplimientoValues.length
+        ? cumplimientoValues.reduce((acc, value) => acc + value, 0) / cumplimientoValues.length
+        : null;
+
+      const estadoBase =
+        persistedPromedioKpi === null
+          ? "Sin datos"
+          : persistedPromedioKpi >= 80
+            ? "En control"
+            : persistedPromedioKpi >= 50
+              ? "En seguimiento"
+              : "Crítico";
+
+      const persistedEstadoGeneral = `${estadoBase}${persistedRiesgo >= 1 ? " con acciones en riesgo" : ""}`;
+
+      await supabase
+        .from("plan_accion_kpis")
+        .update({
+          objetivo: PLAN_ACCION_KPIS_COPY.objective,
+          acciones_alta_prioridad: persistedAltas,
+          acciones_cerradas: persistedCerradas,
+          acciones_en_riesgo: persistedRiesgo,
+          cumplimiento_promedio_kpi: persistedPromedioKpi,
+          estado_general: persistedEstadoGeneral,
+        })
+        .eq("id", planId);
+
       setExistingPlanId(planId);
       setLastSavedSignature(currentSignature);
       push(`${APP_ROUTES.vinculacionAliados}${resolved.hydratedSearch}`);
@@ -189,15 +240,26 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
     cumplimiento,
     priorityIndex,
     priorityLabel,
-    addActionRow: () => setActionRows((prev) => [...prev, { ...emptyActionRow(), locked: false }]),
+    addActionRow: () =>
+      setActionRows((prev) => {
+        const nextRows = [...prev, { ...emptyActionRow(), locked: false }];
+        setKpiRows((prevKpis) => syncClosedActionsKpi(nextRows, prevKpis));
+        return nextRows;
+      }),
     removeActionRow: (index: number) =>
       setActionRows((prev) => {
         const row = prev[index];
         if (!row || row.locked || prev.length <= 1) return prev;
-        return prev.filter((_, i) => i !== index);
+        const nextRows = prev.filter((_, i) => i !== index);
+        setKpiRows((prevKpis) => syncClosedActionsKpi(nextRows, prevKpis));
+        return nextRows;
       }),
     updateActionRow: (index: number, patch: Partial<ActionRow>) =>
-      setActionRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row))),
+      setActionRows((prev) => {
+        const nextRows = prev.map((row, i) => (i === index ? { ...row, ...patch } : row));
+        setKpiRows((prevKpis) => syncClosedActionsKpi(nextRows, prevKpis));
+        return nextRows;
+      }),
     updateKpiRow: (index: number, patch: Partial<KpiRow>) =>
       setKpiRows((prev) =>
         prev.map((row, i) => {

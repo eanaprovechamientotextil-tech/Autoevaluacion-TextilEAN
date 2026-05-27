@@ -76,16 +76,6 @@ export function useCaracterizacionForm(searchParams: URLSearchParams, push: (pat
         parentId = createdParent?.id ?? null;
       }
       if (!parentId) return setSubmitError(CARACTERIZACION_COPY.submit.saveError);
-      const { error: updateResumenError } = await supabase
-        .from("caracterizacion_residuos")
-        .update({
-          total_residuos_kg_mes: totalResiduos,
-          total_aprovechable_kg_mes: totalAprovechable,
-          porcentaje_total_aprovechable: porcentajeTotal,
-          conclusion_automatica: conclusion,
-        })
-        .eq("id", parentId);
-      if (updateResumenError) return setSubmitError(updateResumenError.message || CARACTERIZACION_COPY.submit.saveError);
 
       const { error: deleteDetalleError } = await supabase
         .from("caracterizacion_residuos_detalle")
@@ -96,6 +86,57 @@ export function useCaracterizacionForm(searchParams: URLSearchParams, push: (pat
       const rowsToInsert = detailRows.map((row) => ({ id_caracterizacion: parentId, etapa_generacion: row.etapa_generacion.trim(), tipo_residuo: row.tipo_residuo.trim(), material: row.material.trim(), nombre_rango_etapa: row.nombre_rango_etapa ?? null, nombre_rango_tipo: row.nombre_rango_tipo ?? null, cantidad_residuos_kg_mes: row.cantidad_residuos_kg_mes, cantidad_aprovechable_kg_mes: row.cantidad_aprovechable_kg_mes, porcentaje_aprovechable: rowPercentage(row), estrategia: row.estrategia.trim(), potencial: row.potencial.trim(), observaciones: row.observaciones.trim() || null }));
       const { error } = await supabase.from("caracterizacion_residuos_detalle").insert(rowsToInsert);
       if (error) return setSubmitError(error.message || CARACTERIZACION_COPY.submit.saveError);
+
+      const { data: persistedRows, error: persistedRowsError } = await supabase
+        .from("caracterizacion_residuos_detalle")
+        .select("estrategia, cantidad_residuos_kg_mes, cantidad_aprovechable_kg_mes")
+        .eq("id_caracterizacion", parentId);
+
+      if (persistedRowsError) {
+        return setSubmitError(persistedRowsError.message || CARACTERIZACION_COPY.submit.saveError);
+      }
+
+      const persistedTotalResiduos = (persistedRows ?? []).reduce(
+        (acc, row) => acc + Number(row.cantidad_residuos_kg_mes ?? 0),
+        0,
+      );
+      const persistedTotalAprovechable = (persistedRows ?? []).reduce(
+        (acc, row) => acc + Number(row.cantidad_aprovechable_kg_mes ?? 0),
+        0,
+      );
+      const persistedPorcentaje =
+        persistedTotalResiduos <= 0 ? 0 : (persistedTotalAprovechable / persistedTotalResiduos) * 100;
+
+      const persistedStrategyTotals = new Map<string, number>();
+      (persistedRows ?? []).forEach((row) => {
+        const key = String(row.estrategia ?? "").trim();
+        if (!key) return;
+        persistedStrategyTotals.set(
+          key,
+          (persistedStrategyTotals.get(key) ?? 0) + Number(row.cantidad_residuos_kg_mes ?? 0),
+        );
+      });
+
+      const sortedStrategies = Array.from(persistedStrategyTotals.entries()).sort((a, b) => b[1] - a[1]);
+      const persistedConclusion =
+        sortedStrategies.length === 0
+          ? CARACTERIZACION_COPY.summary.noStrategyData
+          : `Conclusión: La estrategia prioritaria es ${sortedStrategies[0][0]} donde se tiene un total de ${sortedStrategies[0][1].toFixed(2)} kg/mes residuos mensuales`;
+
+      const { error: updateResumenError } = await supabase
+        .from("caracterizacion_residuos")
+        .update({
+          total_residuos_kg_mes: persistedTotalResiduos,
+          total_aprovechable_kg_mes: persistedTotalAprovechable,
+          porcentaje_total_aprovechable: persistedPorcentaje,
+          conclusion_automatica: persistedConclusion,
+        })
+        .eq("id", parentId);
+
+      if (updateResumenError) {
+        return setSubmitError(updateResumenError.message || CARACTERIZACION_COPY.submit.saveError);
+      }
+
       push(`${APP_ROUTES.evaluacionClasificacion}${resolved.hydratedSearch}`);
     } catch (error) {
       console.error("[caracterizacion/saveAndContinue] unexpected error", error);

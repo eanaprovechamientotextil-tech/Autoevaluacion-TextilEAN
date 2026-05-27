@@ -547,6 +547,15 @@ export const PLAN_ACCION_KPIS_COPY = {
       estado: "No iniciado",
     },
   ],
+  faseOptions: [
+    "Gestión de conocimiento",
+    "Diagnóstico",
+    "Clasificación y caracterización",
+    "Aprovechamiento",
+    "Alianzas",
+    "Comercial",
+    "Seguimiento",
+  ],
   initialKpiRows: [
     { indicador: "% Residuos textiles aprovechados", actual: 0, meta: 0 },
     { indicador: "Kg residuos recuperados/mes", actual: 0, meta: 0 },

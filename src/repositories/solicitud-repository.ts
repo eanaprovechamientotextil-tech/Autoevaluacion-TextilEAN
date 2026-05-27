@@ -45,6 +45,27 @@ export async function upsertDiagnostico(payload: {
   details: Array<Record<string, unknown>>;
 }) {
   const { existingId, details, ...parent } = payload;
+
+  const safeDetails = details.map((d) => ({
+    ...d,
+    peso_porcentaje: Number(d.peso_porcentaje ?? 0),
+    calificacion: Number(d.calificacion ?? 1),
+    resultado_ponderado: Number(d.resultado_ponderado ?? 0),
+  }));
+
+  function buildParentFromDetails(rows: typeof safeDetails) {
+    const totalWeighted = rows.reduce((acc, d) => acc + Number(d.resultado_ponderado ?? 0), 0);
+    const maturity = (totalWeighted / 5) * 100;
+    const largestGap = rows.reduce((acc, d) => Math.max(acc, 5 - Number(d.calificacion ?? 1)), 0);
+    return {
+      totalWeighted,
+      maturity,
+      largestGap,
+    };
+  }
+
+  const preComputedParent = buildParentFromDetails(safeDetails);
+
   let planId = existingId;
 
   if (!planId) {
@@ -66,11 +87,11 @@ export async function upsertDiagnostico(payload: {
       .insert({
         id_empresa: parent.idEmpresa,
         numero_solicitud: parent.numeroSolicitud,
-        resultado_total_ponderado: parent.totalWeightedResult,
-        porcentaje_madurez: parent.maturityPercent,
+        resultado_total_ponderado: preComputedParent.totalWeighted,
+        porcentaje_madurez: preComputedParent.maturity,
         nivel_madurez: parent.globalLevel,
         dimension_mas_debil: parent.weakestDimension,
-        mayor_brecha: parent.largestGapDimension,
+        mayor_brecha: preComputedParent.largestGap,
         conclusion: parent.conclusion,
         estado: "borrador",
         creado_por: parent.userId,
@@ -85,23 +106,42 @@ export async function upsertDiagnostico(payload: {
     planId = created.id;
   }
 
-  const { error: updateError } = await supabase.from("diagnosticos").update({
-    resultado_total_ponderado: parent.totalWeightedResult,
-    porcentaje_madurez: parent.maturityPercent,
-    nivel_madurez: parent.globalLevel,
-    dimension_mas_debil: parent.weakestDimension,
-    mayor_brecha: parent.largestGapDimension,
-    conclusion: parent.conclusion,
-    estado: "borrador",
-  }).eq("id", planId);
-  if (updateError) return { error: updateError };
-
   const { error: detailError } = await supabase
     .from("diagnostico_detalle")
-    .upsert(details.map((d) => ({ ...d, id_diagnostico: planId })), {
+    .upsert(safeDetails.map((d) => ({ ...d, id_diagnostico: planId })), {
       onConflict: "id_diagnostico,dimension_clave",
     });
-  return { error: detailError, id: planId };
+  if (detailError) return { error: detailError };
+
+  const { data: persistedDetails, error: persistedDetailsError } = await supabase
+    .from("diagnostico_detalle")
+    .select("calificacion, resultado_ponderado")
+    .eq("id_diagnostico", planId);
+
+  if (persistedDetailsError) return { error: persistedDetailsError };
+
+  const persistedParent = buildParentFromDetails(
+    (persistedDetails ?? []).map((row) => ({
+      calificacion: Number(row.calificacion ?? 1),
+      resultado_ponderado: Number(row.resultado_ponderado ?? 0),
+    })) as typeof safeDetails,
+  );
+
+  const { error: updateError } = await supabase
+    .from("diagnosticos")
+    .update({
+      resultado_total_ponderado: persistedParent.totalWeighted,
+      porcentaje_madurez: persistedParent.maturity,
+      nivel_madurez: parent.globalLevel,
+      dimension_mas_debil: parent.weakestDimension,
+      mayor_brecha: persistedParent.largestGap,
+      conclusion: parent.conclusion,
+      estado: "borrador",
+    })
+    .eq("id", planId);
+  if (updateError) return { error: updateError };
+
+  return { error: null, id: planId };
 }
 
 export async function getLatestCaracterizacionId(idEmpresa: string, numeroSolicitud: string) {

@@ -14,6 +14,7 @@ export const APP_ROUTES = {
   matrizSeguimiento: "/matriz-seguimiento",
   historial: "/historial",
   analisis: "/analisis",
+  analisisComparar: "/analisis/comparar",
 } as const;
 
 export type MainNavLink = {

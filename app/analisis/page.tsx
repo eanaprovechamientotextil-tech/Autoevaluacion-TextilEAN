@@ -93,12 +93,25 @@ export default async function AnalisisPage({ searchParams }: { searchParams: Pro
 
   const { data: diagnostico } = await supabase
     .from("diagnosticos")
-    .select("resultado_total_ponderado, porcentaje_madurez, conclusion, fecha_creacion")
+    .select("id, resultado_total_ponderado, porcentaje_madurez, conclusion, fecha_creacion")
     .eq("id_empresa", empresa)
     .eq("numero_solicitud", sol)
     .order("fecha_creacion", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  const { data: diagnosticoDetalle } = diagnostico?.id
+    ? await supabase
+        .from("diagnostico_detalle")
+        .select("peso_porcentaje, calificacion, resultado_ponderado")
+        .eq("id_diagnostico", diagnostico.id)
+    : { data: [] as Array<{ peso_porcentaje: number; calificacion: number; resultado_ponderado: number }> };
+
+  const recalculatedTotalWeighted = (diagnosticoDetalle ?? []).reduce(
+    (acc, row) => acc + toNumber(row.resultado_ponderado),
+    0,
+  );
+  const recalculatedMaturity = (recalculatedTotalWeighted / 5) * 100;
 
   const { data: caracterizacionRows } = await supabase
     .from("caracterizacion_residuos")
@@ -153,8 +166,8 @@ export default async function AnalisisPage({ searchParams }: { searchParams: Pro
     return acc;
   }, {});
 
-  const maturity = toNumber(diagnostico?.porcentaje_madurez);
-  const totalWeightedResult = toNumber(diagnostico?.resultado_total_ponderado);
+  const maturity = diagnosticoDetalle?.length ? recalculatedMaturity : toNumber(diagnostico?.porcentaje_madurez);
+  const totalWeightedResult = diagnosticoDetalle?.length ? recalculatedTotalWeighted : toNumber(diagnostico?.resultado_total_ponderado);
   const totalWaste = toNumber(caracterizacion?.total_residuos_kg_mes);
   const recoverableWaste = toNumber(caracterizacion?.total_aprovechable_kg_mes);
   const totalRecoverablePercent = toNumber(caracterizacion?.porcentaje_total_aprovechable);

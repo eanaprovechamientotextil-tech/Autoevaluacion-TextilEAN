@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardShell } from "@/components/prototype/dashboard-shell";
@@ -41,7 +41,7 @@ const INITIAL_FORM: AliadoForm = {
 };
 
 function VinculacionAliadosContent() {
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
   const router = useRouter();
   const searchParams = useSearchParams();
   const empresa = searchParams.get("empresa") ?? "";
@@ -61,6 +61,58 @@ function VinculacionAliadosContent() {
   const tableHeadClasses = "border-b border-[var(--outline)]/40 px-3 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-slate-600 whitespace-normal break-words";
   const tableCellClasses = "border-b border-[var(--outline)]/20 px-3 py-2 align-top text-xs text-slate-700 whitespace-normal break-words";
   const errorClasses = "mt-1 block text-xs text-red-600";
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadExistingAliados() {
+      if (!hasSelectedSolicitud) {
+        if (mounted) {
+          setAliados([]);
+          setSubmitError(null);
+        }
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("aliados")
+        .select(
+          "id, nombre_aliado, tipo_aliado, objetivo_alianza, nombre_contacto, celular_contacto, correo_contacto, estado_alianza, observaciones",
+        )
+        .eq("id_empresa", empresa)
+        .eq("numero_solicitud", sol)
+        .order("created_at", { ascending: true });
+
+      if (!mounted) return;
+
+      if (error) {
+        setSubmitError(error.message || "No se pudieron cargar los aliados guardados.");
+        setAliados([]);
+        return;
+      }
+
+      setAliados(
+        (data ?? []).map((row) => ({
+          id: row.id,
+          name: row.nombre_aliado ?? "",
+          type: row.tipo_aliado ?? "",
+          goal: row.objetivo_alianza ?? "",
+          contactName: row.nombre_contacto ?? "",
+          mobile: row.celular_contacto ?? "",
+          email: row.correo_contacto ?? "",
+          status: row.estado_alianza ?? "",
+          observations: row.observaciones ?? "",
+        })),
+      );
+      setSubmitError(null);
+    }
+
+    void loadExistingAliados();
+
+    return () => {
+      mounted = false;
+    };
+  }, [empresa, hasSelectedSolicitud, sol, supabase]);
 
   function onSubmit(values: AliadoForm) {
     if (!hasSelectedSolicitud) return;

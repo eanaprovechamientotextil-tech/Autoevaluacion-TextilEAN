@@ -102,6 +102,9 @@ export function PlanAccionKpisForm() {
         <>
       <article className="rounded-2xl border border-[var(--outline)]/30 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-bold text-slate-900">{PLAN_ACCION_KPIS_COPY.objective}</h2>
+        <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          Puede usar las acciones sugeridas o cambiarlas a actividades que se ajusten a la realidad de su empresa.
+        </p>
       </article>
 
       {form.isLoading ? (
@@ -128,8 +131,8 @@ export function PlanAccionKpisForm() {
           <table className="min-w-[1620px] w-full table-auto">
             <thead className="bg-[var(--surface-subtle)]">
               <tr>
-                <th className={`${tableHeadClasses} w-[16%]`}>{PLAN_ACCION_KPIS_COPY.headers.fase}</th>
-                <th className={`${tableHeadClasses} w-[22%]`}>{PLAN_ACCION_KPIS_COPY.headers.accion}</th>
+                <th className={`${tableHeadClasses} w-[14%]`}>{PLAN_ACCION_KPIS_COPY.headers.fase}</th>
+                <th className={`${tableHeadClasses} w-[30%]`}>{PLAN_ACCION_KPIS_COPY.headers.accion}</th>
                 <th className={`${tableHeadClasses} w-[13%]`}>{PLAN_ACCION_KPIS_COPY.headers.responsable}</th>
                 <th className={`${tableHeadClasses} w-[8%]`}>{PLAN_ACCION_KPIS_COPY.headers.fechaInicio}</th>
                 <th className={`${tableHeadClasses} w-[8%]`}>{PLAN_ACCION_KPIS_COPY.headers.fechaFin}</th>
@@ -147,14 +150,16 @@ export function PlanAccionKpisForm() {
                 return (
                   <tr key={`action-row-${index}`}>
                     <td className={tableCellClasses}>
-                      <textarea
-                        data-autogrow="true"
+                      <select
                         value={row.fase}
                         onChange={(e) => form.updateActionRow(index, { fase: e.target.value })}
-                        onInput={(e) => autoResizeTextarea(e.currentTarget)}
-                        rows={2}
-                        className="w-full resize-none overflow-hidden rounded-lg border border-[var(--outline)] bg-white px-3 py-2 leading-snug"
-                      />
+                        className="h-10 w-full rounded-lg border border-[var(--outline)] bg-white px-3 text-sm"
+                      >
+                        <option value="">Seleccionar fase...</option>
+                        {PLAN_ACCION_KPIS_COPY.faseOptions.map((fase) => (
+                          <option key={fase} value={fase}>{fase}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className={tableCellClasses}>
                       <textarea
