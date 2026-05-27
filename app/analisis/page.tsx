@@ -196,10 +196,10 @@ export default async function AnalisisPage({ searchParams }: { searchParams: Pro
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <section className="rounded-xl border border-[var(--outline)]/30 p-4">
-            <h2 className="text-lg font-bold text-slate-900">Autodiagnóstico detallado</h2>
+            <h2 className="text-lg font-bold text-slate-900">Calificación Autodiagnóstico</h2>
             <div className="mt-3 space-y-3 text-sm">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Resultado total ponderado</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Calificación Autodiagnóstico</p>
                 <p className="mt-1">
                   <span className={`inline-flex rounded-full border px-3 py-1 text-lg font-bold ${scoreTone(totalWeightedResult)}`}>
                     {formatNumber(totalWeightedResult)}

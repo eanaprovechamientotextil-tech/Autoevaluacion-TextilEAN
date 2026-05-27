@@ -77,7 +77,6 @@ pushRows(rows, "6. Empaque", "Empaque", "Prendas defectuosas", "Prendas_defectuo
 
 pushRows(rows, "7. Almacenamiento / Inventario", "Almacenamiento_Inventario", "Bolsas de tela", "Bolsas_de_tela", BOLSAS_FUNDAS_MATERIALES);
 pushRows(rows, "7. Almacenamiento / Inventario", "Almacenamiento_Inventario", "Fundas protectoras", "Fundas_protectoras", BOLSAS_FUNDAS_MATERIALES);
-pushRows(rows, "7. Almacenamiento / Inventario", "Almacenamiento_Inventario", "Hilos sobrantes", "Hilos_sobrantes", HILOS_MATERIALES);
 pushRows(rows, "7. Almacenamiento / Inventario", "Almacenamiento_Inventario", "Prendas defectuosas", "Prendas_defectuosas", BASE_MATERIALES);
 
 pushRows(rows, "8. Distribución / Comercialización", "Distribución_Comercialización", "Bolsas de tela", "Bolsas_de_tela", BOLSAS_FUNDAS_MATERIALES);

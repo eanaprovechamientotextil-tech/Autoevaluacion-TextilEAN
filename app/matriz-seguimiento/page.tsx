@@ -16,16 +16,16 @@ type Row = {
 };
 
 const BASE_ROWS: Row[] = [
-  { etapa: "Gestion de conocimiento", accion: "Capacitacion en economia circular", kpi: "% personal capacitado", resultado: "", cumplimiento: 0 },
-  { etapa: "Diagnostico", accion: "Aplicacion matriz diagnostica", kpi: "Matriz diligenciada", resultado: "", cumplimiento: 0 },
-  { etapa: "Clasificacion", accion: "Caracterizacion de residuos", kpi: "% residuos clasificados", resultado: "", cumplimiento: 0 },
-  { etapa: "Aprovechamiento", accion: "Reutilizacion de retales", kpi: "Kg aprovechados", resultado: "", cumplimiento: 0 },
-  { etapa: "Alianzas", accion: "Vinculacion con aliados estrategicos", kpi: "Numero de alianzas activas", resultado: "", cumplimiento: 0 },
-  { etapa: "Comercial", accion: "Participacion en ferias sostenibles", kpi: "Numero de eventos", resultado: "", cumplimiento: 0 },
+  { etapa: "Gestion de conocimiento", accion: "Capacitación en economia circular", kpi: "% Personal capacitado", resultado: "", cumplimiento: 0 },
+  { etapa: "Diagnostico", accion: "Aplicación matriz diagnostica", kpi: "Matriz diligenciada", resultado: "", cumplimiento: 0 },
+  { etapa: "Clasificacion", accion: "Caracterización de residuos", kpi: "% Residuos clasificados", resultado: "", cumplimiento: 0 },
+  { etapa: "Aprovechamiento", accion: "Reutilización de retales", kpi: "Kg Aprovechados", resultado: "", cumplimiento: 0 },
+  { etapa: "Alianzas", accion: "Vinculación con aliados estrategicos", kpi: "Número de alianzas activas", resultado: "", cumplimiento: 0 },
+  { etapa: "Comercial", accion: "Participación en ferias sostenibles", kpi: "Número de eventos", resultado: "", cumplimiento: 0 },
 ];
 
 function estadoPorCumplimiento(value: number) {
-  if (value <= 0) return "#N/D";
+  if (value <= 0) return "Sin Calificar";
   if (value <= 2) return "Pendiente";
   if (value <= 3) return "En proceso";
   if (value <= 4) return "Avanzado";

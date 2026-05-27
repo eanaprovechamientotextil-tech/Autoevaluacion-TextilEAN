@@ -9,7 +9,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Circular Loom",
+  title: "EcoRuta Textil",
   description: "Autoevaluación de aprovechamiento de residuo textil",
 };
 

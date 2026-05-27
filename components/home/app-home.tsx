@@ -39,7 +39,7 @@ export function AppHome() {
             </span>
 
             <h1 className="text-3xl font-extrabold leading-tight text-[var(--primary)] md:text-5xl">
-              Autoevaluación de aprovechamiento textil para MiPymes del Sector textil de Cundinamarca
+              Autoevaluación de aprovechamiento textil para MiPymes del Sector textil
             </h1>
 
             <p className="max-w-3xl text-base leading-relaxed text-slate-700 md:text-lg">
@@ -57,7 +57,7 @@ export function AppHome() {
                     type="button"
                     className="inline-flex rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:brightness-110"
                   >
-                    Iniciar diagnóstico
+                    Iniciar Registro
                   </button>
                 </DialogTrigger>
                 <DialogContent className="max-h-[90vh] overflow-y-auto border border-[var(--outline)]/50 bg-white sm:max-w-4xl">

@@ -10,7 +10,7 @@ export default function LoginPage() {
       <div className="pointer-events-none absolute -bottom-20 -left-24 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl" />
 
       <header className="fixed top-0 left-0 z-20 flex h-16 w-full items-center justify-center border-b border-white/20 bg-white/70 backdrop-blur-md">
-        <Link href={APP_ROUTES.home} className="text-2xl font-extrabold tracking-tight text-[var(--primary)]">
+        <Link href={APP_ROUTES.home} className="text-2xl font-extrabold tracking-tight text-[var(--brand)]">
           {LOGIN_COPY.brand}
         </Link>
       </header>
@@ -41,9 +41,6 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-8 flex items-center justify-center gap-6 text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-          {LOGIN_COPY.badges.map((badge) => (
-            <span key={badge}>{badge}</span>
-          ))}
         </div>
       </section>
     </main>

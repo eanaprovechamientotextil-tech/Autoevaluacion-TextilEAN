@@ -1,6 +1,6 @@
 export const LANDING_COPY = {
-  badge: "SME Strategic Partner",
-  brand: "Circular Loom",
+  badge: "",
+  brand: "EcoRuta Textil",
   title: "Hoja de Ruta: Aprovechamiento de Residuo Textil",
   description:
     "Herramienta de autoevaluación para MiPymes del sector textil orientada a la economía circular.",
@@ -47,7 +47,7 @@ export const LANDING_COPY = {
 };
 
 export const PLATFORM_COPY = {
-  brand: "Circular Loom",
+  brand: "EcoRuta Textil",
   company: "MiPyme Textil",
   topNav: ["Dashboard", "Autodiagnóstico", "Insights", "Aliados"],
   sideNav: ["Dashboard", "Autodiagnóstico", "Insights", "Aliados", "Historial"],
@@ -55,7 +55,7 @@ export const PLATFORM_COPY = {
   historyButton: "Historial",
   ctaStart: "Iniciar Diagnóstico",
   footer: {
-    copyright: "© 2026 Circular Loom - Alianza Estratégica para la Economía Circular",
+    copyright: "© 2026 EcoRuta Textil - Alianza Estratégica para la Economía Circular",
     links: ["Privacidad", "Términos de Uso", "Educativo"],
   },
 };
@@ -111,9 +111,9 @@ export const ANALISIS_COPY = {
 };
 
 export const LOGIN_COPY = {
-  brand: "Circular Loom",
+  brand: "EcoRuta Textil",
   title: "Bienvenido de nuevo",
-  subtitle: "Accede a tu portal de economía circular para SMEs.",
+  subtitle: "Accede a tu portal de economía circular para MiPymes.",
   email: "Correo electrónico",
   password: "Contraseña",
   emailPlaceholder: "ejemplo@empresa.com",
@@ -126,7 +126,6 @@ export const LOGIN_COPY = {
   divider: "o continúa con",
   noAccount: "¿No tienes cuenta?",
   register: "Regístrate",
-  badges: ["Circular", "Seguro", "Eficiente"],
   authErrorFallback:
     "No fue posible iniciar sesión. Revisá tus credenciales e intentá nuevamente.",
   requiredFields: "Completá correo y contraseña.",
@@ -139,7 +138,7 @@ export const FORM_COMMON_COPY = {
 };
 
 export const SIGNUP_COPY = {
-  brand: "Circular Loom",
+  brand: "EcoRuta Textil",
   title: "Creá tu cuenta",
   subtitle: "Registrate para acceder a la hoja de ruta de economía circular.",
   email: "Correo electrónico",
@@ -161,10 +160,9 @@ export const SIGNUP_COPY = {
 };
 
 export const HOME_DASHBOARD_COPY = {
-  heroBadge: "SME Strategic Partner",
   title: "Hoja de Ruta: Aprovechamiento de Residuo Textil",
   description:
-    "Esta herramienta de autoevaluación orienta a las MiPymes del sector textil de Cundinamarca para identificar oportunidades de aprovechamiento.",
+    "Esta herramienta de autoevaluación orienta a las MiPyMEs del sector textil en la identificación de oportunidades para el aprovechamiento de residuos textiles.",
   ctaPrimary: "Comenzar Autodiagnóstico",
   ctaSecondary: "Ver Guía de Usuario",
   centerTitle: "APROVECHAMIENTO TEXTIL",
@@ -194,7 +192,7 @@ export const REGISTRO_EMPRESA_COPY = {
     large: "Grande",
   },
   draft: "Guardar borrador",
-  next: "Continuar",
+  next: "Continuar a Paso 1 Autodiagnóstico",
   requiredFieldsError: "Completá todos los campos obligatorios.",
   invalidEmployeeCountError: "Ingresá un número de empleados válido.",
   submitLoading: "Registrando...",
@@ -291,7 +289,7 @@ export const AUTODIAGNOSTICO_COPY = {
     advanced: "Mantener y escalar buenas prácticas",
   },
   summary: {
-    totalWeighted: "Resultado total ponderado",
+    totalWeighted: "Calificación Autodiagnóstico",
     maturityPercent: "% Madurez",
     maturityLevel: "Nivel de madurez",
     weakestDimension: "Dimensión más débil",
@@ -330,9 +328,9 @@ export const CARACTERIZACION_COPY = {
   title: "Caracterización de Residuos",
   totalProgressLabel: "PROGRESO TOTAL",
   totalProgressValue: "40%",
-  inventoryTitle: "Inventario de Mermas y Desechos",
+  inventoryTitle: "Inventario de Residuos y Potencial de Aprovechamiento",
   instructions:
-    "Completá la tabla con la información de generación y aprovechamiento. El porcentaje aprovechable se calcula automáticamente.",
+    "Registra las etapas del proceso productivo en las que se hayan identificado residuos textiles, indicando cantidades generadas y potencialmente aprovechables. El porcentaje de aprovechamiento se calcula automáticamente.",
   addRow: "Agregar fila",
   deleteRow: "Eliminar fila",
   headers: {

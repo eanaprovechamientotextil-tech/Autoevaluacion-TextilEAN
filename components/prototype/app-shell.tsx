@@ -11,7 +11,7 @@ export function AppShell({ title, children }: AppShellProps) {
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur-md border-[var(--outline)]">
         <div className="mx-auto max-w-6xl px-4 md:px-12 h-16 flex items-center justify-between">
-          <h1 className="font-extrabold text-2xl text-[var(--primary)]">Circular Loom</h1>
+          <h1 className="font-extrabold text-2xl text-[var(--brand)]">EcoRuta Textil</h1>
           <nav className="hidden md:flex gap-8">
             {MAIN_NAV_LINKS.map((link) => (
               <a

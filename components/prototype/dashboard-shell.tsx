@@ -25,7 +25,7 @@ export function DashboardShell({
   return (
     <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)]">
       <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-[var(--outline)]/40 bg-white/80 px-4 backdrop-blur-md md:px-8">
-        <Link href={APP_ROUTES.homeApp} className="text-3xl font-extrabold tracking-tight text-[var(--primary)] hover:opacity-90">
+        <Link href={APP_ROUTES.homeApp} className="text-3xl font-extrabold tracking-tight text-[var(--brand)] hover:opacity-90">
           {PLATFORM_COPY.brand}
         </Link>
         <div className="flex items-center gap-3">
