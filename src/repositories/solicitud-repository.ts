@@ -106,11 +106,18 @@ export async function upsertDiagnostico(payload: {
     planId = created.id;
   }
 
+  const canonicalDetails = safeDetails.map((d) => ({ ...d, id_diagnostico: planId }));
+
+  // Reemplazo completo del detalle para no arrastrar datos anteriores en solicitudes precargadas.
+  const { error: clearDetailsError } = await supabase
+    .from("diagnostico_detalle")
+    .delete()
+    .eq("id_diagnostico", planId);
+  if (clearDetailsError) return { error: clearDetailsError };
+
   const { error: detailError } = await supabase
     .from("diagnostico_detalle")
-    .upsert(safeDetails.map((d) => ({ ...d, id_diagnostico: planId })), {
-      onConflict: "id_diagnostico,dimension_clave",
-    });
+    .insert(canonicalDetails);
   if (detailError) return { error: detailError };
 
   const { data: persistedDetails, error: persistedDetailsError } = await supabase

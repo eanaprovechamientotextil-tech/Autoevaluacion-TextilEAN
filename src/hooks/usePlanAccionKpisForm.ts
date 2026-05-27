@@ -79,10 +79,17 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
 
   async function load() {
     const runId = ++loadRunRef.current;
+    setIsLoading(true);
     const resolved = await resolveSolicitudContext(searchParams);
     if (runId !== loadRunRef.current) return;
     setHydratedSearch(resolved.hydratedSearch);
-    if (!resolved.context) return setIsLoading(false);
+    if (!resolved.context) {
+      setActionRows(initialRows);
+      setKpiRows(PLAN_ACCION_KPIS_COPY.initialKpiRows);
+      setExistingPlanId(null);
+      setLastSavedSignature("");
+      return setIsLoading(false);
+    }
     setPrerequisiteError(null);
 
     const { data: carac, error: caracError } = await supabase
@@ -116,7 +123,12 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
     const planId = await getLatestPlanId(resolved.context.idEmpresa, resolved.context.numeroSolicitud, resolved.context.userId);
     if (runId !== loadRunRef.current) return;
     if (!planId) {
-      setKpiRows((prev) => applyCaracterizacionToKpis(prev, caracPayload));
+      const nextActionRows = initialRows;
+      const nextKpiRows = syncClosedActionsKpi(nextActionRows, applyCaracterizacionToKpis(PLAN_ACCION_KPIS_COPY.initialKpiRows, caracPayload));
+      setActionRows(nextActionRows);
+      setKpiRows(nextKpiRows);
+      setExistingPlanId(null);
+      setLastSavedSignature("");
       return setIsLoading(false);
     }
     const [{ data: actions }, { data: kpis }] = await Promise.all([
@@ -136,14 +148,13 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
         estado: row.estado ?? "No iniciado",
       })) ?? [];
     const mappedKpis = kpis?.map((row) => ({ indicador: row.indicador ?? "", actual: Number(row.valor_actual ?? 0), meta: Number(row.valor_meta ?? 0) })) ?? [];
-    if (mappedActions.length) setActionRows(mappedActions);
-    if (mappedKpis.length) {
-      setKpiRows(syncClosedActionsKpi(mappedActions.length ? mappedActions : actionRows, applyCaracterizacionToKpis(mappedKpis, caracPayload)));
-    } else {
-      setKpiRows((prev) => syncClosedActionsKpi(mappedActions.length ? mappedActions : actionRows, applyCaracterizacionToKpis(prev, caracPayload)));
-    }
+    const nextActionRows = mappedActions.length ? mappedActions : initialRows;
+    const baseKpiRows = mappedKpis.length ? mappedKpis : PLAN_ACCION_KPIS_COPY.initialKpiRows;
+    const nextKpiRows = syncClosedActionsKpi(nextActionRows, applyCaracterizacionToKpis(baseKpiRows, caracPayload));
+    setActionRows(nextActionRows);
+    setKpiRows(nextKpiRows);
     setExistingPlanId(planId);
-    setLastSavedSignature(signatureFor(mappedActions.length ? mappedActions : actionRows, mappedKpis.length ? mappedKpis : kpiRows));
+    setLastSavedSignature(signatureFor(nextActionRows, nextKpiRows));
     setIsLoading(false);
   }
 
@@ -159,9 +170,38 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
       if (currentSignature === lastSavedSignature && existingPlanId) return push(`${APP_ROUTES.vinculacionAliados}${resolved.hydratedSearch}`);
       const planId = existingPlanId ?? (await supabase.from("plan_accion_kpis").insert({ id_empresa: resolved.context.idEmpresa, numero_solicitud: resolved.context.numeroSolicitud, creado_por: resolved.context.userId }).select("id").single()).data?.id;
       if (!planId) return setSubmitError(PLAN_ACCION_KPIS_COPY.submit.saveError);
-      await Promise.all([supabase.from("plan_accion_detalle").delete().eq("id_plan", planId), supabase.from("plan_kpi_detalle").delete().eq("id_plan", planId)]);
-      await supabase.from("plan_accion_detalle").insert(actionRows.map((row) => { const indice = priorityIndex(row.impacto, row.esfuerzo); return { id_plan: planId, fase: row.fase, accion: row.accion, responsable: row.responsable, fecha_inicio: row.fecha_inicio || null, fecha_fin: row.fecha_fin || null, impacto: toScore(row.impacto) || 1, esfuerzo: toScore(row.esfuerzo) || 1, indice_prioridad: indice === "" ? null : indice, prioridad: priorityLabel(indice) || null, estado: row.estado }; }));
-      await supabase.from("plan_kpi_detalle").insert(kpiRows.map((row) => ({ id_plan: planId, indicador: row.indicador, valor_actual: row.actual, valor_meta: row.meta, porcentaje_cumplimiento: cumplimiento(row.actual, row.meta) })));
+      const [{ error: deleteActionsError }, { error: deleteKpisError }] = await Promise.all([
+        supabase.from("plan_accion_detalle").delete().eq("id_plan", planId),
+        supabase.from("plan_kpi_detalle").delete().eq("id_plan", planId),
+      ]);
+      if (deleteActionsError || deleteKpisError) {
+        return setSubmitError(deleteActionsError?.message || deleteKpisError?.message || PLAN_ACCION_KPIS_COPY.submit.saveError);
+      }
+
+      const { error: insertActionsError } = await supabase.from("plan_accion_detalle").insert(actionRows.map((row) => {
+        const indice = priorityIndex(row.impacto, row.esfuerzo);
+        return {
+          id_plan: planId,
+          fase: row.fase,
+          accion: row.accion,
+          responsable: row.responsable,
+          fecha_inicio: row.fecha_inicio || null,
+          fecha_fin: row.fecha_fin || null,
+          impacto: toScore(row.impacto) || 1,
+          esfuerzo: toScore(row.esfuerzo) || 1,
+          indice_prioridad: indice === "" ? null : indice,
+          prioridad: priorityLabel(indice) || null,
+          estado: row.estado,
+        };
+      }));
+      if (insertActionsError) {
+        return setSubmitError(insertActionsError.message || PLAN_ACCION_KPIS_COPY.submit.saveError);
+      }
+
+      const { error: insertKpisError } = await supabase.from("plan_kpi_detalle").insert(kpiRows.map((row) => ({ id_plan: planId, indicador: row.indicador, valor_actual: row.actual, valor_meta: row.meta, porcentaje_cumplimiento: cumplimiento(row.actual, row.meta) })));
+      if (insertKpisError) {
+        return setSubmitError(insertKpisError.message || PLAN_ACCION_KPIS_COPY.submit.saveError);
+      }
 
       const [{ data: persistedActions, error: persistedActionsError }, { data: persistedKpis, error: persistedKpisError }] =
         await Promise.all([
@@ -205,7 +245,7 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
 
       const persistedEstadoGeneral = `${estadoBase}${persistedRiesgo >= 1 ? " con acciones en riesgo" : ""}`;
 
-      await supabase
+      const { error: updateParentError } = await supabase
         .from("plan_accion_kpis")
         .update({
           objetivo: PLAN_ACCION_KPIS_COPY.objective,
@@ -216,6 +256,9 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
           estado_general: persistedEstadoGeneral,
         })
         .eq("id", planId);
+      if (updateParentError) {
+        return setSubmitError(updateParentError.message || PLAN_ACCION_KPIS_COPY.submit.saveError);
+      }
 
       setExistingPlanId(planId);
       setLastSavedSignature(currentSignature);

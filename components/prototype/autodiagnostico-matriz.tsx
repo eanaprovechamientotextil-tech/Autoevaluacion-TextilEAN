@@ -10,10 +10,11 @@ import { SolicitudSelector } from "@/components/prototype/solicitud-selector";
 export function AutodiagnosticoMatriz() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const selectedSolicitudKey = `${searchParams.get("empresa") ?? ""}::${searchParams.get("sol") ?? ""}`;
   const hasSelectedSolicitud = Boolean(searchParams.get("empresa") && searchParams.get("sol"));
   const form = useAutodiagnosticoForm(searchParams, (path) => router.push(path));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { form.load().catch(() => undefined); }, []);
+  useEffect(() => { form.load().catch(() => undefined); }, [selectedSolicitudKey]);
   const tableHeadClasses = "border-b border-[var(--outline)]/40 px-3 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600";
   const tableCellClasses = "border-b border-[var(--outline)]/20 px-3 py-3 align-top text-sm text-slate-700";
   const scoreTone = (score: number) => {

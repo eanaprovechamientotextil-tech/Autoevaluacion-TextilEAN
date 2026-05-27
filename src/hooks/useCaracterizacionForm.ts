@@ -5,7 +5,7 @@ import { CARACTERIZACION_COPY } from "@/src/constants/copy";
 import { emptyCaracterizacionRow, rowPercentage, toNonNegativeNumber, withComputedFields } from "@/src/domain/caracterizacion";
 import { getLatestCaracterizacionId, resolveSolicitudContext, supabase } from "@/src/repositories/solicitud-repository";
 import { CaracterizacionRow } from "@/src/types/caracterizacion";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 export function useCaracterizacionForm(searchParams: URLSearchParams, push: (path: string) => void) {
   const [rows, setRows] = useState<CaracterizacionRow[]>([emptyCaracterizacionRow()]);
@@ -13,6 +13,7 @@ export function useCaracterizacionForm(searchParams: URLSearchParams, push: (pat
   const [isLoading, setIsLoading] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [hydratedSearch, setHydratedSearch] = useState("");
+  const loadRunRef = useRef(0);
 
   const totalResiduos = useMemo(() => rows.reduce((acc, row) => acc + row.cantidad_residuos_kg_mes, 0), [rows]);
   const totalAprovechable = useMemo(() => rows.reduce((acc, row) => acc + row.cantidad_aprovechable_kg_mes, 0), [rows]);
@@ -30,14 +31,27 @@ export function useCaracterizacionForm(searchParams: URLSearchParams, push: (pat
   const hasMeaningfulRows = useMemo(() => rows.some((row) => Object.values(row).some((value) => typeof value === "number" ? value > 0 : String(value ?? "").trim())), [rows]);
 
   async function load() {
+    const runId = ++loadRunRef.current;
+    setIsLoading(true);
     const resolved = await resolveSolicitudContext(searchParams);
+    if (runId !== loadRunRef.current) return;
     setHydratedSearch(resolved.hydratedSearch);
-    if (!resolved.context) return setIsLoading(false);
+    if (!resolved.context) {
+      setRows([emptyCaracterizacionRow()]);
+      return setIsLoading(false);
+    }
     const parentId = await getLatestCaracterizacionId(resolved.context.idEmpresa, resolved.context.numeroSolicitud);
-    if (!parentId) return setIsLoading(false);
+    if (runId !== loadRunRef.current) return;
+    if (!parentId) {
+      setRows([emptyCaracterizacionRow()]);
+      return setIsLoading(false);
+    }
     const { data: details } = await supabase.from("caracterizacion_residuos_detalle").select("etapa_generacion, tipo_residuo, material, nombre_rango_etapa, nombre_rango_tipo, cantidad_residuos_kg_mes, cantidad_aprovechable_kg_mes, estrategia, potencial, observaciones").eq("id_caracterizacion", parentId);
+    if (runId !== loadRunRef.current) return;
     if (details?.length) {
       setRows(details.map((row) => withComputedFields({ etapa_generacion: row.etapa_generacion ?? "", tipo_residuo: row.tipo_residuo ?? "", material: row.material ?? "", nombre_rango_etapa: row.nombre_rango_etapa, nombre_rango_tipo: row.nombre_rango_tipo, cantidad_residuos_kg_mes: Number(row.cantidad_residuos_kg_mes ?? 0), cantidad_aprovechable_kg_mes: Number(row.cantidad_aprovechable_kg_mes ?? 0), estrategia: row.estrategia ?? "", potencial: row.potencial ?? "", observaciones: row.observaciones ?? "" })));
+    } else {
+      setRows([emptyCaracterizacionRow()]);
     }
     setIsLoading(false);
   }

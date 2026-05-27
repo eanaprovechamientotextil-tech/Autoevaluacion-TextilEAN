@@ -16,13 +16,14 @@ import { SolicitudSelector } from "@/components/prototype/solicitud-selector";
 export function CaracterizacionResiduosForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const selectedSolicitudKey = `${searchParams.get("empresa") ?? ""}::${searchParams.get("sol") ?? ""}`;
   const hasSelectedSolicitud = Boolean(searchParams.get("empresa") && searchParams.get("sol"));
   const form = useCaracterizacionForm(searchParams, (path) => router.push(path));
 
   useEffect(() => {
     form.load().catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedSolicitudKey]);
 
   const updateEtapa = (index: number, etapa: string) =>
     form.setRows((prev) =>

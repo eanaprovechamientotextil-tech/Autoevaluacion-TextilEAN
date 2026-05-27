@@ -19,6 +19,7 @@ export function useAutodiagnosticoForm(searchParams: URLSearchParams, push: (pat
   const [isLoading, setIsLoading] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [hydratedSearch, setHydratedSearch] = useState("");
+  const loadRunRef = useRef(0);
 
   const computedRows = useMemo(() => buildComputedRows(scores, weights), [scores, weights]);
   const totalWeight = useMemo(() => computedRows.reduce((acc, row) => acc + row.weight, 0), [computedRows]);
@@ -42,13 +43,31 @@ export function useAutodiagnosticoForm(searchParams: URLSearchParams, push: (pat
     setWeightsState(next);
   };
 
+  function resetToInitialState() {
+    scoresRef.current = { ...initialScores };
+    weightsRef.current = { ...initialWeights };
+    setScoresState({ ...initialScores });
+    setWeightsState({ ...initialWeights });
+  }
+
   async function load() {
+    const runId = ++loadRunRef.current;
+    setIsLoading(true);
     const resolved = await resolveSolicitudContext(searchParams);
+    if (runId !== loadRunRef.current) return;
     setHydratedSearch(resolved.hydratedSearch);
-    if (!resolved.context) return setIsLoading(false);
+    if (!resolved.context) {
+      resetToInitialState();
+      return setIsLoading(false);
+    }
     const diagId = await getLatestDiagnosticoId(resolved.context.idEmpresa, resolved.context.numeroSolicitud);
-    if (!diagId) return setIsLoading(false);
+    if (runId !== loadRunRef.current) return;
+    if (!diagId) {
+      resetToInitialState();
+      return setIsLoading(false);
+    }
     const { data: details } = await supabase.from("diagnostico_detalle").select("dimension_clave, peso_porcentaje, calificacion").eq("id_diagnostico", diagId);
+    if (runId !== loadRunRef.current) return;
     if (details?.length) {
       const nextScores = { ...initialScores };
       const nextWeights = { ...initialWeights };
@@ -62,6 +81,8 @@ export function useAutodiagnosticoForm(searchParams: URLSearchParams, push: (pat
       weightsRef.current = nextWeights;
       setScoresState(nextScores);
       setWeightsState(nextWeights);
+    } else {
+      resetToInitialState();
     }
     setIsLoading(false);
   }
