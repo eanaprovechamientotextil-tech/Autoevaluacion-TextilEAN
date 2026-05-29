@@ -1,6 +1,7 @@
 import { DashboardShell } from "@/components/prototype/dashboard-shell";
 import { HistorialCompareTable } from "@/components/historial/historial-compare-table";
 import { createClient } from "@/lib/supabase/server";
+import { isGlobalAdminEmail } from "@/src/constants/auth";
 import { APP_ROUTES } from "@/src/constants/routes";
 import { HISTORIAL_COPY } from "@/src/constants/copy";
 import { redirect } from "next/navigation";
@@ -50,11 +51,18 @@ export default async function HistorialPage() {
     redirect(APP_ROUTES.login);
   }
 
-  const { data: companies, error: companiesError } = await supabase
+  const isAdmin = isGlobalAdminEmail(user.email);
+
+  let companiesQuery = supabase
     .from("companies")
     .select("id, numero_solicitud, nombre_empresa, created_at")
-    .eq("created_by", user.id)
     .order("created_at", { ascending: false });
+
+  if (!isAdmin) {
+    companiesQuery = companiesQuery.eq("created_by", user.id);
+  }
+
+  const { data: companies, error: companiesError } = await companiesQuery;
 
   if (companiesError) {
     return (

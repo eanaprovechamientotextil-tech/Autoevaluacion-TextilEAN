@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isGlobalAdminEmail } from "@/src/constants/auth";
 import { APP_ROUTES } from "@/src/constants/routes";
 import { ANALISIS_COPY } from "@/src/constants/copy";
 import { CompareCharts } from "@/components/analisis/compare-charts";
@@ -52,14 +53,24 @@ type Snapshot = {
   caracterizacionConclusion: string;
 };
 
-async function loadSnapshot(supabase: Awaited<ReturnType<typeof createClient>>, empresa: string, sol: string, userId: string): Promise<Snapshot | null> {
-  const { data: company } = await supabase
+async function loadSnapshot(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  empresa: string,
+  sol: string,
+  userId: string,
+  isAdmin: boolean,
+): Promise<Snapshot | null> {
+  let companyQuery = supabase
     .from("companies")
     .select("*")
     .eq("id", empresa)
-    .eq("numero_solicitud", sol)
-    .eq("created_by", userId)
-    .maybeSingle();
+    .eq("numero_solicitud", sol);
+
+  if (!isAdmin) {
+    companyQuery = companyQuery.eq("created_by", userId);
+  }
+
+  const { data: company } = await companyQuery.maybeSingle();
 
   if (!company) return null;
 
@@ -207,6 +218,8 @@ export default async function CompararAnalisisPage({ searchParams }: { searchPar
 
   if (!user) redirect(APP_ROUTES.login);
 
+  const isAdmin = isGlobalAdminEmail(user.email);
+
   if (!empresaA || !solA || !empresaB || !solB) {
     return (
       <section className="mx-auto mt-8 max-w-4xl rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">
@@ -224,16 +237,16 @@ export default async function CompararAnalisisPage({ searchParams }: { searchPar
   }
 
   const [snapA, snapB] = await Promise.all([
-    loadSnapshot(supabase, empresaA, solA, user.id),
-    loadSnapshot(supabase, empresaB, solB, user.id),
+    loadSnapshot(supabase, empresaA, solA, user.id, isAdmin),
+    loadSnapshot(supabase, empresaB, solB, user.id, isAdmin),
   ]);
 
   if (!snapA || !snapB) {
     return (
-      <section className="mx-auto mt-8 max-w-4xl rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">
-        No se encontraron ambas solicitudes o no pertenecen a tu cuenta.
-      </section>
-    );
+        <section className="mx-auto mt-8 max-w-4xl rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">
+          No se encontraron ambas solicitudes o no tenés permisos para acceder.
+        </section>
+      );
   }
 
   const nombreA = String(snapA.companyRecord.nombre_empresa ?? "").trim();

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isGlobalAdminEmail } from "@/src/constants/auth";
 import { ANALISIS_COPY } from "@/src/constants/copy";
 import { APP_ROUTES } from "@/src/constants/routes";
 import Link from "next/link";
@@ -66,13 +67,19 @@ export default async function AnalisisPage({ searchParams }: { searchParams: Pro
     return <section className="mx-auto mt-8 max-w-4xl rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">{ANALISIS_COPY.noContext}</section>;
   }
 
-  const { data: company } = await supabase
+  const isAdmin = isGlobalAdminEmail(user.email);
+
+  let companyQuery = supabase
     .from("companies")
     .select("*")
     .eq("id", empresa)
-    .eq("numero_solicitud", sol)
-    .eq("created_by", user.id)
-    .maybeSingle();
+    .eq("numero_solicitud", sol);
+
+  if (!isAdmin) {
+    companyQuery = companyQuery.eq("created_by", user.id);
+  }
+
+  const { data: company } = await companyQuery.maybeSingle();
 
   if (!company) {
     return <section className="mx-auto mt-8 max-w-4xl rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700">{ANALISIS_COPY.noContext}</section>;
