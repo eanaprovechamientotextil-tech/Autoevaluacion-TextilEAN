@@ -115,7 +115,6 @@ export function CompareCharts({ metricData, estrategiaData, labelA, labelB }: Co
       </section>
       */}
 
-      {/* Barras por estrategia - Comentado temporalmente
       {estrategiaData.length > 0 && (
         <section className="rounded-2xl border border-[var(--outline)]/30 bg-white p-6 shadow-sm">
           <h3 className="mb-4 text-lg font-bold text-slate-900">Residuos por Estrategia</h3>
@@ -146,7 +145,6 @@ export function CompareCharts({ metricData, estrategiaData, labelA, labelB }: Co
           </div>
         </section>
       )}
-      */}
     </div>
   );
 }
