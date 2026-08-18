@@ -4,8 +4,8 @@ export const LANDING_COPY = {
   title: "Hoja de Ruta: Aprovechamiento de Residuo Textil",
   description:
     "Herramienta de autoevaluación para MiPymes del sector textil orientada a la economía circular.",
-  ctaPrimary: "Comenzar Autodiagnóstico",
-  ctaSecondary: "Ver Guía de Usuario",
+  ctaPrimary: "Comenzar autodiagnóstico",
+  ctaSecondary: "Ver guía de usuario",
   nav: ["Assess", "Insights", "Allies", "Profile"],
   pathwayCenterTitle: "APROVECHAMIENTO TEXTIL",
   pathwayCenterSubtitle: "ECONOMÍA CIRCULAR",
@@ -70,14 +70,14 @@ export const HISTORIAL_COPY = {
     status: "Estado",
     actions: "Acciones",
   },
-  statusComplete: "Completado",
+  statusComplete: "completado",
   statusInProgress: "Pendiente",
   continueButton: "Continuar",
   viewAnalysisButton: "Ver análisis",
-  emptyTitle: "Todavía no tenés solicitudes en proceso",
+  emptyTitle: "Todavía no tienes solicitudes en proceso",
   emptyDescription:
-    "Cuando registres una empresa y avances en el flujo, aparecerá acá el estado de cada solicitud.",
-  authRequired: "Necesitás iniciar sesión para ver el historial.",
+    "Cuando registres una empresa y avances en el flujo, aparecerá aquí el estado de cada solicitud.",
+  authRequired: "Necesitas iniciar sesión para ver el historial.",
   fallbackDate: "Sin fecha",
 };
 
@@ -120,15 +120,15 @@ export const LOGIN_COPY = {
   passwordPlaceholder: "••••••••",
   remember: "Recuérdame",
   forgot: "¿Olvidaste tu contraseña?",
-  submit: "Iniciar Sesión",
+  submit: "Iniciar sesión",
   submitLoading: "Ingresando...",
   loginSuccess: "Inicio de sesión exitoso. Redirigiendo...",
   divider: "o continúa con",
   noAccount: "¿No tienes cuenta?",
   register: "Regístrate",
   authErrorFallback:
-    "No fue posible iniciar sesión. Revisá tus credenciales e intentá nuevamente.",
-  requiredFields: "Completá correo y contraseña.",
+    "No fue posible iniciar sesión. Revisa tus credenciales e intenta nuevamente.",
+  requiredFields: "Completa correo y contraseña.",
 };
 
 export const FORM_COMMON_COPY = {
@@ -140,7 +140,7 @@ export const FORM_COMMON_COPY = {
 export const SIGNUP_COPY = {
   brand: "EcoRuta Textil",
   title: "Crea tu cuenta",
-  subtitle: "Registrate para acceder a la hoja de ruta de economía circular.",
+  subtitle: "Regístrate para acceder a la hoja de ruta de economía circular.",
   email: "Correo electrónico",
   password: "Contraseña",
   confirmPassword: "Confirmar contraseña",
@@ -149,54 +149,54 @@ export const SIGNUP_COPY = {
   confirmPasswordPlaceholder: "••••••••",
   submit: "Crear cuenta",
   submitLoading: "Creando cuenta...",
-  requiredFields: "Completá correo, contraseña y confirmación.",
+  requiredFields: "Completa correo, contraseña y confirmación.",
   passwordMismatch: "Las contraseñas no coinciden.",
   successEmailConfirmation:
-    "Cuenta creada con éxito. Revisá tu correo para confirmar tu cuenta antes de iniciar sesión.",
-  successDirect: "Cuenta creada con éxito. Ya podés iniciar sesión.",
-  authErrorFallback: "No fue posible crear la cuenta. Intentá nuevamente.",
-  alreadyHaveAccount: "¿Ya tenés cuenta?",
+    "Cuenta creada con éxito. Revisa tu correo para confirmar tu cuenta antes de iniciar sesión.",
+  successDirect: "Cuenta creada con éxito. Ya puedes iniciar sesión.",
+  authErrorFallback: "No fue posible crear la cuenta. Intenta nuevamente.",
+  alreadyHaveAccount: "¿Ya tienes cuenta?",
   loginLink: "Iniciar sesión",
 };
 
 export const FORGOT_COPY = {
   brand: "EcoRuta Textil",
   title: "Recuperar contraseña",
-  subtitle: "Ingresá tu correo y te enviaremos las instrucciones para restablecer tu contraseña.",
+  subtitle: "Ingresa tu correo y te enviaremos las instrucciones para restablecer tu contraseña.",
   email: "Correo electrónico",
   emailPlaceholder: "ejemplo@empresa.com",
   submit: "Enviar instrucciones",
   submitLoading: "Enviando...",
-  success: "Revisá tu correo. Te enviamos un enlace para restablecer tu contraseña.",
-  error: "No fue posible enviar el correo. Verificá tu dirección e intentá nuevamente.",
-  requiredFields: "Completá tu correo electrónico.",
+  success: "Revisa tu correo. Te enviamos un enlace para restablecer tu contraseña.",
+  error: "No fue posible enviar el correo. Verifica tu dirección e intenta nuevamente.",
+  requiredFields: "Completa tu correo electrónico.",
   backToLogin: "Volver al inicio de sesión",
 };
 
 export const UPDATE_PASSWORD_COPY = {
   brand: "EcoRuta Textil",
   title: "Nueva contraseña",
-  subtitle: "Ingresá tu nueva contraseña para restablecer el acceso a tu cuenta.",
+  subtitle: "Ingresa tu nueva contraseña para restablecer el acceso a tu cuenta.",
   password: "Nueva contraseña",
   confirmPassword: "Confirmar contraseña",
   passwordPlaceholder: "••••••••",
   confirmPasswordPlaceholder: "••••••••",
   submit: "Restablecer contraseña",
   submitLoading: "Restableciendo...",
-  success: "Contraseña restablecida con éxito. Ya podés iniciar sesión.",
+  success: "Contraseña restablecida con éxito. Ya puedes iniciar sesión.",
   error: "No fue posible restablecer la contraseña. El enlace puede haber expirado.",
-  requiredFields: "Completá ambos campos.",
+  requiredFields: "Completa ambos campos.",
   passwordMismatch: "Las contraseñas no coinciden.",
   backToLogin: "Ir al inicio de sesión",
-  invalidToken: "El enlace de recuperación no es válido o expiró. Solicitá uno nuevo.",
+  invalidToken: "El enlace de recuperación no es válido o expiró. Solicita uno nuevo.",
 };
 
 export const HOME_DASHBOARD_COPY = {
   title: "Hoja de Ruta: Aprovechamiento de Residuo Textil",
   description:
     "Esta herramienta de autoevaluación orienta a las MiPyMEs del sector textil en la identificación de oportunidades para el aprovechamiento de residuos textiles.",
-  ctaPrimary: "Comenzar Autodiagnóstico",
-  ctaSecondary: "Ver Guía de Usuario",
+  ctaPrimary: "Comenzar autodiagnóstico",
+  ctaSecondary: "Ver guía de usuario",
   centerTitle: "APROVECHAMIENTO TEXTIL",
   centerSubtitle: "ECONOMÍA CIRCULAR",
   ringSegments: ["1. Upcycling", "2. Reciclaje Mecánico", "3. Estrategia Comercial", "4. Donación / Reventa"],
@@ -204,7 +204,7 @@ export const HOME_DASHBOARD_COPY = {
 
 export const REGISTRO_EMPRESA_COPY = {
   stepLabel: "Etapa 1 de 4",
-  title: "Datos de la Compañía",
+  title: "Datos de la compañía",
   progress: "25% completado",
   intro:
     "Para comenzar la transformación circular de su empresa, necesitamos conocer la información básica de su operación.",
@@ -224,20 +224,20 @@ export const REGISTRO_EMPRESA_COPY = {
     large: "Grande",
   },
   draft: "Guardar borrador",
-  next: "Continuar a Paso 1 Autodiagnóstico",
-  requiredFieldsError: "Completá todos los campos obligatorios.",
-  invalidEmployeeCountError: "Ingresá un número de empleados válido.",
+  next: "Continuar al paso 1: Autodiagnóstico",
+  requiredFieldsError: "Completa todos los campos obligatorios.",
+  invalidEmployeeCountError: "Ingresa un número de empleados válido.",
   submitLoading: "Registrando...",
   submitSuccess: "Solicitud creada con éxito.",
   requestNumberLabel: "Número de solicitud",
-  submitErrorFallback: "No se pudo guardar el registro. Intentá nuevamente.",
+  submitErrorFallback: "No se pudo guardar el registro. Intenta nuevamente.",
   companyContextStorageKey: "company-context",
 };
 
 export const AUTODIAGNOSTICO_COPY = {
   stepLabel: "Paso 1 de 5",
   title: "Autodiagnóstico detallado",
-  progress: "20% Completado",
+  progress: "20% completado",
   objective:
     "Evaluar el nivel de madurez de la MiPyME frente al aprovechamiento de residuos textiles",
   instructions: "Califique cada dimensión en una escala de 1 a 5.",
@@ -321,7 +321,7 @@ export const AUTODIAGNOSTICO_COPY = {
     advanced: "Mantener y escalar buenas prácticas",
   },
   summary: {
-    totalWeighted: "Calificación Autodiagnóstico",
+    totalWeighted: "Calificación del autodiagnóstico",
     maturityPercent: "% Madurez",
     maturityLevel: "Nivel de madurez",
     weakestDimension: "Dimensión más débil",
@@ -336,8 +336,8 @@ export const AUTODIAGNOSTICO_COPY = {
   submit: {
     saving: "Guardando diagnóstico...",
     companyContextMissing:
-      "No encontramos los datos de empresa de la etapa anterior. Volvé a registro de empresa y guardá nuevamente.",
-    saveError: "No se pudo guardar el diagnóstico. Intentá nuevamente.",
+      "No encontramos los datos de la empresa de la etapa anterior. Vuelve a registro de empresa y guarda nuevamente.",
+    saveError: "No se pudo guardar el diagnóstico. Intenta nuevamente.",
   },
   weightValidation: {
     totalLabel: "Suma de pesos",
@@ -386,17 +386,17 @@ export const CARACTERIZACION_COPY = {
     noStrategyData: "Sin datos de estrategia",
   },
   fields: {
-    etapaPlaceholder: "Seleccioná etapa",
-    tipoResiduoPlaceholder: "Seleccioná tipo de residuo",
-    materialPlaceholder: "Seleccioná material",
+    etapaPlaceholder: "Selecciona una etapa",
+    tipoResiduoPlaceholder: "Selecciona un tipo de residuo",
+    materialPlaceholder: "Selecciona un material",
     estrategiaPlaceholder: "Ej. Reutilización interna",
     potencialPlaceholder: "Ej. Alto",
     observacionesPlaceholder: "Observaciones",
   },
   selects: {
-    etapaDefaultOption: "Seleccioná etapa",
-    tipoDefaultOption: "Seleccioná tipo",
-    materialDefaultOption: "Seleccioná material",
+    etapaDefaultOption: "Selecciona una etapa",
+    tipoDefaultOption: "Selecciona un tipo",
+    materialDefaultOption: "Selecciona un material",
   },
   actions: {
     back: "Atrás",
@@ -406,8 +406,8 @@ export const CARACTERIZACION_COPY = {
     saving: "Guardando caracterización...",
     authRequired: "Tu sesión expiró. Iniciá sesión nuevamente para guardar la caracterización.",
     companyContextMissing:
-      "No encontramos los datos de empresa o solicitud. Volvé al paso anterior y guardá nuevamente.",
-    saveError: "No se pudo guardar la caracterización. Intentá nuevamente.",
+      "No encontramos los datos de la empresa o solicitud. Vuelve al paso anterior y guarda nuevamente.",
+    saveError: "No se pudo guardar la caracterización. Intenta nuevamente.",
   },
   initialRows: [
     {
@@ -436,7 +436,7 @@ export const CARACTERIZACION_COPY = {
 export const EVAL_CONOCIMIENTO_COPY = {
   stepLabel: "Paso 2 de 4",
   title: "Diagnóstico Operativo",
-  progress: "45% Completado",
+  progress: "45% completado",
   question:
     "¿Qué tan familiarizado está su equipo directivo con los principios de la Economía Circular?",
   left: "Nulo / Muy Bajo",
@@ -496,8 +496,8 @@ export const PLAN_ACCION_KPIS_COPY = {
     saving: "Guardando plan de acción...",
     authRequired: "Tu sesión expiró. Iniciá sesión nuevamente para guardar el plan.",
     companyContextMissing:
-      "No encontramos los datos de empresa o solicitud. Volvé al paso anterior y guardá nuevamente.",
-    saveError: "No se pudo guardar el plan de acción y KPIs. Intentá nuevamente.",
+      "No encontramos los datos de la empresa o solicitud. Vuelve al paso anterior y guarda nuevamente.",
+    saveError: "No se pudo guardar el plan de acción y KPIs. Intenta nuevamente.",
   },
   actions: {
     back: "Atrás",
@@ -615,7 +615,7 @@ export const PLAN_ACCION_KPIS_COPY = {
 
 export const EVAL_ALIANZAS_COPY = {
   stepLabel: "Paso Final: Alianzas y Comercialización",
-  progress: "85% Completado",
+  progress: "85% completado",
   title: "Cierre de Evaluación",
   intro:
     "Ha llegado a la etapa final del autodiagnóstico. Analizaremos su capacidad de generar valor con alianzas estratégicas.",
@@ -625,7 +625,7 @@ export const EVAL_ALIANZAS_COPY = {
 
 export const VINCULACION_COPY = {
   stepLabel: "Paso 4 de 5",
-  progress: "80% Completado",
+  progress: "80% completado",
   title: "Vincula tus Aliados",
   description:
     "Identifica socios clave (centros de reciclaje, transportistas, ONGs) para cerrar el ciclo de tus residuos textiles.",
