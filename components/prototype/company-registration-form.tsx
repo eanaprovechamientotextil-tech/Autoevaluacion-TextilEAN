@@ -82,6 +82,10 @@ function recomputeDiagnosticoFromDetails(
   };
 }
 
+// ── Precarga de evaluación anterior — deshabilitada temporalmente ──
+// Si se necesita clonar datos de una evaluación previa, descomentar esta función
+// y la llamada en onSubmit (bloque "shouldCloneFromExisting").
+/*
 async function cloneEvaluationDataFromSource(params: {
   supabase: ReturnType<typeof createClient>;
   sourceCandidates: CompanySeedCandidate[];
@@ -502,6 +506,7 @@ async function cloneEvaluationDataFromSource(params: {
 
   return warnings;
 }
+*/
 
 type CompanyRegistrationFormProps = {
   inDialog?: boolean;
@@ -707,34 +712,37 @@ export function CompanyRegistrationForm({ inDialog = false }: CompanyRegistratio
       }
 
       const assignedRequestNumber = insertedCompany?.numero_solicitud ?? requestNumber;
-      const shouldCloneFromExisting =
-        Boolean(existingCompanySeed?.id) &&
-        existingCompanySeed?.normalizedName === normalizeCompanyNameKey(normalizedCompanyName) &&
-        Boolean(insertedCompany?.id);
 
-      if (shouldCloneFromExisting && insertedCompany?.id) {
-        const cloneWarnings = await cloneEvaluationDataFromSource({
-          supabase,
-          sourceCandidates: existingCompanySeed!.candidates,
-          targetEmpresaId: insertedCompany.id,
-          targetNumeroSolicitud: assignedRequestNumber,
-          userId: user?.id ?? null,
-        });
-
-        if (cloneWarnings.length) {
-          setSuccessMessage(
-            `${REGISTRO_EMPRESA_COPY.submitSuccess} ${REGISTRO_EMPRESA_COPY.requestNumberLabel}: ${assignedRequestNumber}. Se clonó la base anterior con advertencias.`,
-          );
-        } else {
-          setSuccessMessage(
-            `${REGISTRO_EMPRESA_COPY.submitSuccess} ${REGISTRO_EMPRESA_COPY.requestNumberLabel}: ${assignedRequestNumber}. Se clonaron todos los datos de la evaluación anterior.`,
-          );
-        }
-      } else {
+      // ── Precarga de evaluación anterior — deshabilitada temporalmente ──
+      // Para reactivar, descomentar el bloque siguiente y la función cloneEvaluationDataFromSource.
+      // const shouldCloneFromExisting =
+      //   Boolean(existingCompanySeed?.id) &&
+      //   existingCompanySeed?.normalizedName === normalizeCompanyNameKey(normalizedCompanyName) &&
+      //   Boolean(insertedCompany?.id);
+      //
+      // if (shouldCloneFromExisting && insertedCompany?.id) {
+      //   const cloneWarnings = await cloneEvaluationDataFromSource({
+      //     supabase,
+      //     sourceCandidates: existingCompanySeed!.candidates,
+      //     targetEmpresaId: insertedCompany.id,
+      //     targetNumeroSolicitud: assignedRequestNumber,
+      //     userId: user?.id ?? null,
+      //   });
+      //
+      //   if (cloneWarnings.length) {
+      //     setSuccessMessage(
+      //       `${REGISTRO_EMPRESA_COPY.submitSuccess} ${REGISTRO_EMPRESA_COPY.requestNumberLabel}: ${assignedRequestNumber}. Se clonó la base anterior con advertencias.`,
+      //     );
+      //   } else {
+      //     setSuccessMessage(
+      //       `${REGISTRO_EMPRESA_COPY.submitSuccess} ${REGISTRO_EMPRESA_COPY.requestNumberLabel}: ${assignedRequestNumber}. Se clonaron todos los datos de la evaluación anterior.`,
+      //     );
+      //   }
+      // } else {
         setSuccessMessage(
           `${REGISTRO_EMPRESA_COPY.submitSuccess} ${REGISTRO_EMPRESA_COPY.requestNumberLabel}: ${assignedRequestNumber}`,
         );
-      }
+      // }
 
       const nextUrl = `${APP_ROUTES.autodiagnostico}?empresa=${insertedCompany?.id ?? ""}&sol=${assignedRequestNumber}`;
       router.push(nextUrl);

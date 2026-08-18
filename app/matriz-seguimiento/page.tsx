@@ -32,6 +32,12 @@ function estadoPorCumplimiento(value: number) {
   return "Cumplido";
 }
 
+const RESULTADO_OPTIONS = [
+  { label: "Realizado", value: "Realizado", cumplimiento: 5 },
+  { label: "No realizado", value: "No realizado", cumplimiento: 1 },
+  { label: "En proceso", value: "En proceso", cumplimiento: 3 },
+] as const;
+
 function nivelPorPromedio(value: number) {
   if (value <= 2) return "Bajo";
   if (value <= 3.5) return "Medio";
@@ -64,10 +70,8 @@ function kpiResultadoMode(kpi: string) {
 function clampResultadoByMode(value: string, mode: "text" | "percent" | "number") {
   if (mode === "text") return value;
   if (value === "") return "";
-
   const parsed = Number(value);
   if (Number.isNaN(parsed)) return "";
-
   if (mode === "percent") return Math.max(0, Math.min(100, parsed)).toString();
   return Math.max(0, parsed).toString();
 }
@@ -181,8 +185,19 @@ function MatrizSeguimientoContent() {
   const interpretacion = interpretacionPorNivel(nivelCumplimiento);
 
   function updateResultado(index: number, value: string, mode: "text" | "percent" | "number") {
-    const safeValue = clampResultadoByMode(value, mode);
-    setRows((prev) => prev.map((row, rowIndex) => (rowIndex === index ? { ...row, resultado: safeValue } : row)));
+    const row = rows[index];
+    if (row.etapa === "Diagnostico") {
+      const option = RESULTADO_OPTIONS.find((opt) => opt.value === value);
+      const cumplimiento = option?.cumplimiento ?? 0;
+      setRows((prev) =>
+        prev.map((r, i) => (i === index ? { ...r, resultado: value, cumplimiento } : r)),
+      );
+    } else {
+      const safeValue = clampResultadoByMode(value, mode);
+      setRows((prev) =>
+        prev.map((r, i) => (i === index ? { ...r, resultado: safeValue } : r)),
+      );
+    }
   }
 
   function updateCumplimiento(index: number, value: string) {
@@ -360,17 +375,28 @@ function MatrizSeguimientoContent() {
                 </tr>
               </thead>
               <tbody>
-              {rows.map((row, index) => (
+              {rows.map((row, index) => {
+                const isDiagnostico = row.etapa === "Diagnostico";
+                const mode = kpiResultadoMode(row.kpi);
+                return (
                 <tr key={row.etapa} className="bg-white align-top">
-                  {(() => {
-                    const mode = kpiResultadoMode(row.kpi);
-                    return (
-                      <>
+                  <>
                   <td className="border-b border-[var(--outline)]/20 px-3 py-3 text-sm break-words whitespace-normal text-slate-800">{row.etapa}</td>
                   <td className="border-b border-[var(--outline)]/20 px-3 py-3 text-sm break-words whitespace-normal text-slate-700">{row.accion}</td>
                   <td className="border-b border-[var(--outline)]/20 px-3 py-3 text-sm break-words whitespace-normal text-slate-700">{row.kpi}</td>
                   <td className="border-b border-[var(--outline)]/20 px-3 py-2">
-                    {mode === "text" ? (
+                    {isDiagnostico ? (
+                      <select
+                        value={row.resultado}
+                        onChange={(event) => updateResultado(index, event.target.value, mode)}
+                        className="h-10 w-full rounded-lg border border-[var(--outline)] bg-white px-3 text-sm text-slate-800 outline-none focus:border-[var(--primary)]"
+                      >
+                        <option value="">Seleccionar...</option>
+                        {RESULTADO_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    ) : mode === "text" ? (
                       <input
                         value={row.resultado}
                         onChange={(event) => updateResultado(index, event.target.value, mode)}
@@ -396,23 +422,32 @@ function MatrizSeguimientoContent() {
                     )}
                   </td>
                   <td className="border-b border-[var(--outline)]/20 px-3 py-2">
-                    <input
-                      type="number"
-                      min={1}
-                      max={5}
-                      step={0.1}
-                      value={row.cumplimiento || ""}
-                      onChange={(event) => updateCumplimiento(index, event.target.value)}
-                      className="h-10 w-full rounded-lg border border-[var(--outline)] bg-white px-3 text-sm text-slate-800 outline-none focus:border-[var(--primary)]"
-                      placeholder="1 - 5"
-                    />
+                    {isDiagnostico ? (
+                      <input
+                        type="number"
+                        min={1}
+                        max={5}
+                        value={row.cumplimiento || ""}
+                        readOnly
+                        className="h-10 w-full rounded-lg border border-[var(--outline)] bg-slate-100 px-3 text-sm text-slate-800"
+                      />
+                    ) : (
+                      <input
+                        type="number"
+                        min={1}
+                        max={5}
+                        step={0.1}
+                        value={row.cumplimiento || ""}
+                        onChange={(event) => updateCumplimiento(index, event.target.value)}
+                        className="h-10 w-full rounded-lg border border-[var(--outline)] bg-white px-3 text-sm text-slate-800 outline-none focus:border-[var(--primary)]"
+                        placeholder="1 - 5"
+                      />
+                    )}
                   </td>
                   <td className="border-b border-[var(--outline)]/20 px-3 py-3 text-sm font-semibold text-slate-800">{estadoPorCumplimiento(row.cumplimiento)}</td>
-                      </>
-                    );
-                  })()}
+                  </>
                 </tr>
-              ))}
+              )})}
               <tr className="bg-[var(--surface-subtle)]">
                 <td className="border-b border-[var(--outline)]/30 px-3 py-3 text-sm font-semibold text-slate-800" colSpan={4}>
                   Promedio final

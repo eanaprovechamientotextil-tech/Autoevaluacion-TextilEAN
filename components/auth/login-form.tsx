@@ -89,7 +89,7 @@ export function LoginForm() {
           <input type="checkbox" className="h-4 w-4 rounded border-[var(--outline)]" />
           <span>{LOGIN_COPY.remember}</span>
         </label>
-        <Link className="font-semibold text-[var(--primary)] hover:underline" href="#">
+        <Link className="font-semibold text-[var(--primary)] hover:underline" href={APP_ROUTES.forgotPassword}>
           {LOGIN_COPY.forgot}
         </Link>
       </div>

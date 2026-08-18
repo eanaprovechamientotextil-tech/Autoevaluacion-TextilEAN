@@ -299,7 +299,11 @@ export function usePlanAccionKpisForm(searchParams: URLSearchParams, push: (path
       }),
     updateActionRow: (index: number, patch: Partial<ActionRow>) =>
       setActionRows((prev) => {
-        const nextRows = prev.map((row, i) => (i === index ? { ...row, ...patch } : row));
+        const patched =
+          patch.fase !== undefined
+            ? { ...patch, accion: PLAN_ACCION_KPIS_COPY.faseActionMap[patch.fase] ?? patch.accion ?? prev[index]?.accion ?? "" }
+            : patch;
+        const nextRows = prev.map((row, i) => (i === index ? { ...row, ...patched } : row));
         setKpiRows((prevKpis) => syncClosedActionsKpi(nextRows, prevKpis));
         return nextRows;
       }),

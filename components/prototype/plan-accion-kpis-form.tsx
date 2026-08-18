@@ -49,6 +49,17 @@ export function PlanAccionKpisForm() {
     );
   };
 
+  const isCurrencyIndicator = (indicator: string) =>
+    normalizeIndicator(indicator).includes("ingresos o ahorros por aprovechamiento");
+
+  const formatThousands = (value: number) =>
+    value === 0 ? "" : value.toLocaleString("es-CO");
+
+  const parseThousands = (input: string) => {
+    const cleaned = input.replace(/[^0-9]/g, "");
+    return cleaned === "" ? 0 : Number(cleaned);
+  };
+
   const estadoGeneralTone = (label: string) => {
     const normalized = label
       .normalize("NFD")
@@ -286,6 +297,7 @@ export function PlanAccionKpisForm() {
                   {form.kpiRows.map((row, index) => {
                     const value = form.cumplimiento(row.actual, row.meta);
                     const isActualReadonly = isReadonlyActualIndicator(row.indicador);
+                    const isCurrency = isCurrencyIndicator(row.indicador);
                     const editableInputClasses =
                       "h-10 w-full rounded-lg border border-[var(--outline)] bg-white px-3";
                     const tone = cumplimientoTone(value);
@@ -293,31 +305,52 @@ export function PlanAccionKpisForm() {
                       <tr key={`${row.indicador}-${index}`}>
                         <td className={tableCellClasses}>{row.indicador}</td>
                         <td className={tableCellClasses}>
-                          <input
-                            type="number"
-                            value={row.actual}
-                            onChange={(e) => form.updateKpiRow(index, { actual: Number(e.target.value) || 0 })}
-                            onFocus={(e) => {
-                              if (!isActualReadonly && row.actual === 0) {
-                                e.currentTarget.select();
-                              }
-                            }}
-                            disabled={isActualReadonly}
-                            className={`${editableInputClasses} disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-600`}
-                          />
+                          {isCurrency ? (
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={formatThousands(row.actual)}
+                              onChange={(e) => form.updateKpiRow(index, { actual: parseThousands(e.target.value) })}
+                              disabled={isActualReadonly}
+                              className={`${editableInputClasses} disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-600`}
+                            />
+                          ) : (
+                            <input
+                              type="number"
+                              value={row.actual}
+                              onChange={(e) => form.updateKpiRow(index, { actual: Number(e.target.value) || 0 })}
+                              onFocus={(e) => {
+                                if (!isActualReadonly && row.actual === 0) {
+                                  e.currentTarget.select();
+                                }
+                              }}
+                              disabled={isActualReadonly}
+                              className={`${editableInputClasses} disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-600`}
+                            />
+                          )}
                         </td>
                         <td className={tableCellClasses}>
-                          <input
-                            type="number"
-                            value={row.meta}
-                            onChange={(e) => form.updateKpiRow(index, { meta: Number(e.target.value) || 0 })}
-                            onFocus={(e) => {
-                              if (row.meta === 0) {
-                                e.currentTarget.select();
-                              }
-                            }}
-                            className={editableInputClasses}
-                          />
+                          {isCurrency ? (
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={formatThousands(row.meta)}
+                              onChange={(e) => form.updateKpiRow(index, { meta: parseThousands(e.target.value) })}
+                              className={editableInputClasses}
+                            />
+                          ) : (
+                            <input
+                              type="number"
+                              value={row.meta}
+                              onChange={(e) => form.updateKpiRow(index, { meta: Number(e.target.value) || 0 })}
+                              onFocus={(e) => {
+                                if (row.meta === 0) {
+                                  e.currentTarget.select();
+                                }
+                              }}
+                              className={editableInputClasses}
+                            />
+                          )}
                         </td>
                         <td className={tableCellClasses}>
                           <span

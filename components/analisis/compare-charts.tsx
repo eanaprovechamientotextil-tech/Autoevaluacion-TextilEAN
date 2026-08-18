@@ -49,7 +49,7 @@ function DeltaChip({ a, b, higherBetter }: { a: number; b: number; higherBetter:
   const prefix = delta > 0 ? "+" : "";
 
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-bold ${tone}`}>
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-base font-bold ${tone}`}>
       {prefix}{formatNumber(delta)}
     </span>
   );
@@ -67,11 +67,11 @@ export function CompareCharts({ metricData, estrategiaData, labelA, labelB }: Co
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{item.name}</p>
               <div className="mt-2 flex items-end justify-between gap-2">
                 <div>
-                  <p className="text-xs text-slate-500">{labelA}</p>
+                  <p className="text-base text-slate-500">{labelA}</p>
                   <p className="text-lg font-bold text-[var(--primary)]">{formatNumber(item.a)}{item.name.includes("%") ? "%" : ""}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-500">{labelB}</p>
+                  <p className="text-base text-slate-500">{labelB}</p>
                   <p className="text-lg font-bold text-[var(--primary)]">{formatNumber(item.b)}{item.name.includes("%") ? "%" : ""}</p>
                 </div>
               </div>
@@ -83,7 +83,7 @@ export function CompareCharts({ metricData, estrategiaData, labelA, labelB }: Co
         </div>
       </section>
 
-      {/* Gráfica de barras agrupadas - Métricas globales */}
+      {/* Gráfica de barras agrupadas - Comentado temporalmente
       <section className="rounded-2xl border border-[var(--outline)]/30 bg-white p-6 shadow-sm">
         <h3 className="mb-4 text-lg font-bold text-slate-900">Comparación de Métricas</h3>
         <div className="h-[360px]">
@@ -113,8 +113,9 @@ export function CompareCharts({ metricData, estrategiaData, labelA, labelB }: Co
           </ResponsiveContainer>
         </div>
       </section>
+      */}
 
-      {/* Barras por estrategia de caracterización */}
+      {/* Barras por estrategia - Comentado temporalmente
       {estrategiaData.length > 0 && (
         <section className="rounded-2xl border border-[var(--outline)]/30 bg-white p-6 shadow-sm">
           <h3 className="mb-4 text-lg font-bold text-slate-900">Residuos por Estrategia</h3>
@@ -145,6 +146,7 @@ export function CompareCharts({ metricData, estrategiaData, labelA, labelB }: Co
           </div>
         </section>
       )}
+      */}
     </div>
   );
 }

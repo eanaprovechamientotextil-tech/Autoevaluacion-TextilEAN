@@ -139,7 +139,7 @@ export const FORM_COMMON_COPY = {
 
 export const SIGNUP_COPY = {
   brand: "EcoRuta Textil",
-  title: "Creá tu cuenta",
+  title: "Crea tu cuenta",
   subtitle: "Registrate para acceder a la hoja de ruta de economía circular.",
   email: "Correo electrónico",
   password: "Contraseña",
@@ -157,6 +157,38 @@ export const SIGNUP_COPY = {
   authErrorFallback: "No fue posible crear la cuenta. Intentá nuevamente.",
   alreadyHaveAccount: "¿Ya tenés cuenta?",
   loginLink: "Iniciar sesión",
+};
+
+export const FORGOT_COPY = {
+  brand: "EcoRuta Textil",
+  title: "Recuperar contraseña",
+  subtitle: "Ingresá tu correo y te enviaremos las instrucciones para restablecer tu contraseña.",
+  email: "Correo electrónico",
+  emailPlaceholder: "ejemplo@empresa.com",
+  submit: "Enviar instrucciones",
+  submitLoading: "Enviando...",
+  success: "Revisá tu correo. Te enviamos un enlace para restablecer tu contraseña.",
+  error: "No fue posible enviar el correo. Verificá tu dirección e intentá nuevamente.",
+  requiredFields: "Completá tu correo electrónico.",
+  backToLogin: "Volver al inicio de sesión",
+};
+
+export const UPDATE_PASSWORD_COPY = {
+  brand: "EcoRuta Textil",
+  title: "Nueva contraseña",
+  subtitle: "Ingresá tu nueva contraseña para restablecer el acceso a tu cuenta.",
+  password: "Nueva contraseña",
+  confirmPassword: "Confirmar contraseña",
+  passwordPlaceholder: "••••••••",
+  confirmPasswordPlaceholder: "••••••••",
+  submit: "Restablecer contraseña",
+  submitLoading: "Restableciendo...",
+  success: "Contraseña restablecida con éxito. Ya podés iniciar sesión.",
+  error: "No fue posible restablecer la contraseña. El enlace puede haber expirado.",
+  requiredFields: "Completá ambos campos.",
+  passwordMismatch: "Las contraseñas no coinciden.",
+  backToLogin: "Ir al inicio de sesión",
+  invalidToken: "El enlace de recuperación no es válido o expiró. Solicitá uno nuevo.",
 };
 
 export const HOME_DASHBOARD_COPY = {
@@ -556,6 +588,22 @@ export const PLAN_ACCION_KPIS_COPY = {
     "Comercial",
     "Seguimiento",
   ],
+  faseActionMap: {
+    "Gestión de conocimiento":
+      "Capacitar al equipo de producción, compras u operaciones en aprovechamiento de residuos textiles. Capacitación que pueden recibir de entidades como el SENA o la CAR",
+    "Diagnóstico":
+      "Levantar inventario mensual de residuos textiles por tipo y cantidad",
+    "Clasificación y caracterización":
+      "Definir puntos de separación para retazos, prendas defectuosas e inventario obsoleto",
+    "Aprovechamiento":
+      "Identificar opciones de reutilización, donación, reciclaje o upcycling",
+    "Alianzas":
+      "Identificar aliados circulares: recicladores, fundaciones, transformadores o diseñadores",
+    "Comercial":
+      "Evaluar productos o servicios derivados del aprovechamiento textil",
+    "Seguimiento":
+      "Definir indicadores y metas de kg recuperados, % aprovechamiento y beneficio económico con medición mensual",
+  } as Record<string, string>,
   initialKpiRows: [
     { indicador: "% Residuos textiles aprovechados", actual: 0, meta: 0 },
     { indicador: "Kg residuos recuperados/mes", actual: 0, meta: 0 },

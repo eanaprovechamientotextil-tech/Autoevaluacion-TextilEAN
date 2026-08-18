@@ -15,6 +15,8 @@ export const APP_ROUTES = {
   historial: "/historial",
   analisis: "/analisis",
   analisisComparar: "/analisis/comparar",
+  forgotPassword: "/olvidar-contrasena",
+  updatePassword: "/actualizar-contrasena",
 } as const;
 
 export type MainNavLink = {
